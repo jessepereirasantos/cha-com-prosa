@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { addTicket, updateTicket } from '@/lib/db';
-import { createPixPayment } from '@/lib/mercadopago';
+import { addTicket, updateTicket } from '../../../lib/db';
+import { createPixPayment, createCardPayment } from '../../../lib/mercadopago';
 
 export async function POST(req: Request) {
   try {
