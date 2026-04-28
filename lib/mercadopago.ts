@@ -17,12 +17,13 @@ export async function createPixPayment(ticketData: {
   name: string;
   email: string;
   document?: string;
+  amount: number;
 }) {
   const payment = new Payment(client);
 
   const response = await payment.create({
     body: {
-      transaction_amount: 57,
+      transaction_amount: ticketData.amount,
       description: 'Ingresso Chá com Prosa - Mulheres com Propósito',
       payment_method_id: 'pix',
       external_reference: ticketData.id,
@@ -56,12 +57,13 @@ export async function createCardPayment(ticketData: {
   paymentMethodId: string;
   issuerId?: string;
   installments?: number;
+  amount: number;
 }) {
   const payment = new Payment(client);
 
   const response = await payment.create({
     body: {
-      transaction_amount: 57,
+      transaction_amount: ticketData.amount,
       token: ticketData.cardToken,
       description: 'Ingresso Chá com Prosa - Mulheres com Propósito',
       installments: ticketData.installments || 1,

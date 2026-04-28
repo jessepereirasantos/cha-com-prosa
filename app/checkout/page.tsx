@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Loader2, CheckCircle2, Ticket, CreditCard, QrCode } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Ticket, CreditCard, QrCode, Tag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Script from 'next/script';
@@ -35,6 +35,12 @@ export default function CheckoutPage() {
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string; paymentId: string } | null>(null);
+  
+  // Coupon States
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState('');
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -82,6 +88,27 @@ export default function CheckoutPage() {
     setValue('phone', val);
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setIsValidatingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch(`/api/coupons/validate?code=${couponCode}`);
+      const data = await res.json();
+      if (data.valid) {
+        setDiscount(data.discount);
+        setCouponError('');
+      } else {
+        setDiscount(0);
+        setCouponError(data.error || 'Cupom inválido');
+      }
+    } catch (err) {
+      setCouponError('Erro ao validar');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
   const handleFormSubmit = async (data: FormData) => {
     if (!agreed) {
       alert("Por favor, aceite os Termos de Uso e Regras do Evento.");
@@ -92,7 +119,8 @@ export default function CheckoutPage() {
     try {
       let payload: any = {
         ...data,
-        paymentMethod
+        paymentMethod,
+        couponCode
       };
 
       if (paymentMethod === 'card') {
@@ -386,18 +414,50 @@ export default function CheckoutPage() {
                  </div>
               </div>
 
+              {/* Coupon Section */}
+               <div className="mb-8 p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                  <div className="flex gap-2">
+                     <div className="relative flex-1">
+                        <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                        <input 
+                          type="text" 
+                          placeholder="Cupom de desconto"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          className="w-full bg-white border border-stone-200 rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/10"
+                        />
+                     </div>
+                     <button 
+                       type="button"
+                       onClick={handleApplyCoupon}
+                       disabled={isValidatingCoupon || !couponCode}
+                       className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                     >
+                       {isValidatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aplicar'}
+                     </button>
+                  </div>
+                  {couponError && <p className="text-[10px] text-red-500 mt-2 ml-1 font-bold">{couponError}</p>}
+                  {discount > 0 && <p className="text-[10px] text-green-600 mt-2 ml-1 font-bold">Cupom aplicado: - R$ {discount.toFixed(2)}</p>}
+               </div>
+
               <div className="space-y-4 border-t border-rose-50 pt-6">
                  <div className="flex justify-between text-stone-500 text-sm italic">
                     <span>Subtotal</span>
                     <span>R$ 57,00</span>
                  </div>
+                 {discount > 0 && (
+                   <div className="flex justify-between text-green-600 text-sm italic font-bold">
+                      <span>Desconto</span>
+                      <span>- R$ {discount.toFixed(2)}</span>
+                   </div>
+                 )}
                  <div className="flex justify-between text-stone-500 text-sm italic">
                     <span>Taxa de Serviço</span>
                     <span>R$ 0,00</span>
                  </div>
                  <div className="flex justify-between items-center pt-4 border-t border-rose-100">
                     <span className="text-lg font-serif font-bold">Total</span>
-                    <span className="text-3xl font-serif text-primary font-bold">R$ 57,00</span>
+                    <span className="text-3xl font-serif text-primary font-bold">R$ {(57 - discount).toFixed(2)}</span>
                  </div>
               </div>
 

@@ -5,10 +5,19 @@ import { createPixPayment, createCardPayment } from '../../../lib/mercadopago';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, phone, document, paymentMethod } = body;
+    const { name, email, phone, document, paymentMethod, couponCode } = body;
 
     if (!name || !email || !phone) {
       return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 });
+    }
+
+    // 1. Calcula o valor com base no cupom
+    let amount = 57;
+    if (couponCode) {
+      const [couponRows] = await require('../../../lib/mysql').query('SELECT discount FROM coupons WHERE code = ?', [couponCode.toUpperCase()]) as any[];
+      if (couponRows) {
+        amount = Math.max(0, 57 - parseFloat(couponRows.discount.toString()));
+      }
     }
 
     // 1. Salva o ingresso no banco com status 'pending'
@@ -34,7 +43,8 @@ export async function POST(req: Request) {
           document,
           cardToken,
           paymentMethodId,
-          installments: parseInt(installments) || 1
+          installments: parseInt(installments) || 1,
+          amount
         });
       } else {
         mpPayment = await createPixPayment({
@@ -42,6 +52,7 @@ export async function POST(req: Request) {
           name,
           email,
           document,
+          amount
         });
       }
     } catch (mpError: any) {

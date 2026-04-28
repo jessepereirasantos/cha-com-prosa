@@ -1,0 +1,241 @@
+﻿app/checkout/page.tsx(202,5): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(203,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(204,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(205,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(206,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(213,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(215,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(221,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(223,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(224,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(230,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(231,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(233,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(236,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(237,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(238,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(239,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(240,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(245,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(247,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(248,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(249,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(254,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(258,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(259,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(260,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(261,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(268,34): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(270,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(271,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(272,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(277,34): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(281,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(282,16): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(283,16): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(284,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(289,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(290,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(291,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(292,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(295,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(300,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(301,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(302,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(303,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(308,16): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(310,20): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(316,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(317,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(318,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(331,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(332,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(333,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(342,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(343,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(344,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(345,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(358,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(359,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(360,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(373,20): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(379,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(380,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(382,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(393,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(399,12): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(400,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(402,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(403,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(404,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(405,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(406,27): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(408,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(409,27): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(410,27): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(413,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(418,16): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(419,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(420,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(421,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(422,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(430,22): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(436,46): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(439,35): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(440,36): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(443,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(444,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(445,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(446,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(449,20): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(450,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(451,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(454,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(455,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(456,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(458,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(459,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(460,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(464,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(465,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(466,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(467,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(469,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(474,18): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(475,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(482,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(484,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(497,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(503,28): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(509,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(511,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(517,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(523,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(528,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(531,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(533,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(534,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(535,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(536,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(536,200): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(539,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(540,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(541,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(544,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(545,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(546,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(546,106): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(549,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(550,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(551,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(554,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(555,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(556,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(560,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(561,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(575,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(581,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(588,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(589,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(590,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(592,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(593,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(596,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(597,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(605,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(606,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(607,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(608,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(614,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(626,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(627,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(628,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(633,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(634,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(635,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(637,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(638,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(639,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/checkout/page.tsx(647,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+node_modules/next/dist/build/templates/app-page.d.ts(11,25): error TS2307: Cannot find module 'VAR_MODULE_GLOBAL_ERROR' or its corresponding type declarations.
+node_modules/next/dist/build/webpack-config.d.ts(10,104): error TS2694: Namespace '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/next/dist/compiled/webpack/webpack".webpack' has no exported member 'RuleSetUseItem'.
+node_modules/next/dist/build/webpack/loaders/next-app-loader/index.d.ts(1,13): error TS2613: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/next/dist/compiled/webpack/webpack"' has no default export. Did you mean to use 'import { webpack } from "C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/next/dist/compiled/webpack/webpack"' instead?
+node_modules/next/dist/client/components/error-boundary.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/components/http-access-fallback/error-boundary.d.ts(11,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/components/layout-router.d.ts(2,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/image-component.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/link.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/script.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/client/with-router.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/lib/metadata/metadata.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/server/app-render/entry-base.d.ts(1,114): error TS2307: Cannot find module 'react-server-dom-webpack/server' or its corresponding type declarations.
+node_modules/next/dist/server/app-render/entry-base.d.ts(2,49): error TS2307: Cannot find module 'react-server-dom-webpack/static' or its corresponding type declarations.
+node_modules/next/dist/server/web/spec-extension/adapters/headers.d.ts(39,16): error TS2304: Cannot find name 'HeadersIterator'.
+node_modules/next/dist/server/web/spec-extension/adapters/headers.d.ts(40,13): error TS2304: Cannot find name 'HeadersIterator'.
+node_modules/next/dist/server/web/spec-extension/adapters/headers.d.ts(41,15): error TS2304: Cannot find name 'HeadersIterator'.
+node_modules/next/dist/server/web/spec-extension/adapters/headers.d.ts(42,26): error TS2304: Cannot find name 'HeadersIterator'.
+node_modules/next/dist/shared/lib/amp-context.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/app-router-context.shared-runtime.d.ts(4,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/head-manager-context.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/image-config-context.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/loadable-context.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/loadable.shared-runtime.d.ts(21,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/router-context.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/server-inserted-html.shared-runtime.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/utils.d.ts(10,13): error TS1192: Module '"fs"' has no default export.
+node_modules/next/dist/types.d.ts(8,13): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/react-hook-form/dist/form.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/react-hook-form/dist/types/controller.d.ts(1,13): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/react-hook-form/dist/types/form.d.ts(1,13): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/react-hook-form/dist/useFormContext.d.ts(1,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v3/errors.d.cts(2,8): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v3/locales/en"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(1,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ar"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(2,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/az"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(3,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/be"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(4,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/bg"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(5,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ca"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(6,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/cs"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(7,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/da"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(8,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/de"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(9,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/en"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(10,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/eo"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(11,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/es"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(12,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/fa"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(13,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/fi"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(14,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/fr"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(15,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/fr-CA"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(16,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/he"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(17,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/hu"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(18,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/hy"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(19,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/id"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(20,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/is"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(21,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/it"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(22,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ja"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(23,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ka"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(24,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/kh"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(25,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/km"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(26,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ko"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(27,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/lt"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(28,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/mk"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(29,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ms"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(30,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/nl"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(31,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/no"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(32,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ota"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(33,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ps"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(34,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/pl"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(35,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/pt"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(36,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ru"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(37,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/sl"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(38,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/sv"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(39,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ta"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(40,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/th"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(41,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/tr"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(42,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ua"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(43,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/uk"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(44,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/ur"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(45,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/uz"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(46,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/vi"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(47,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/zh-CN"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(48,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/zh-TW"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/zod/v4/locales/index.d.cts(49,21): error TS1259: Module '"C:/Users/Silvana Barbosa/Desktop/LAND-CHA-COM-PROSA/node_modules/zod/v4/locales/yo"' can only be default-imported using the 'esModuleInterop' flag
