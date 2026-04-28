@@ -45,8 +45,12 @@ export async function POST(req: Request) {
         });
       }
     } catch (mpError: any) {
-      console.error('Mercado Pago API Error Detail:', mpError?.message || mpError);
-      const errorMessage = mpError?.cause?.[0]?.description || 'Erro ao processar pagamento no Mercado Pago';
+      console.error('--- MERCADO PAGO ERROR START ---');
+      console.error('Message:', mpError?.message);
+      console.error('Cause:', JSON.stringify(mpError?.cause, null, 2));
+      console.error('--- MERCADO PAGO ERROR END ---');
+      
+      const errorMessage = mpError?.cause?.[0]?.description || mpError?.message || 'Erro ao processar pagamento no Mercado Pago';
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 

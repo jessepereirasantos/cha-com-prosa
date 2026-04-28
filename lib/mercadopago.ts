@@ -37,6 +37,7 @@ export async function createPixPayment(ticketData: {
       },
       notification_url: getWebhookUrl(),
     },
+    requestOptions: { idempotencyKey: ticketData.id }
   });
 
   return response;
@@ -53,6 +54,7 @@ export async function createCardPayment(ticketData: {
   document?: string;
   cardToken: string;
   paymentMethodId: string;
+  issuerId?: string;
   installments?: number;
 }) {
   const payment = new Payment(client);
@@ -64,6 +66,7 @@ export async function createCardPayment(ticketData: {
       description: 'Ingresso Chá com Prosa - Mulheres com Propósito',
       installments: ticketData.installments || 1,
       payment_method_id: ticketData.paymentMethodId,
+      issuer_id: ticketData.issuerId ? parseInt(ticketData.issuerId) : undefined,
       external_reference: ticketData.id,
       payer: {
         email: ticketData.email,
@@ -74,6 +77,7 @@ export async function createCardPayment(ticketData: {
       },
       notification_url: getWebhookUrl(),
     },
+    requestOptions: { idempotencyKey: ticketData.id }
   });
 
   return response;

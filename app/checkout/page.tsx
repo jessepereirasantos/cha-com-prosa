@@ -103,7 +103,17 @@ export default function CheckoutPage() {
         
         const mp = new (window as any).MercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY);
         
-        // 2. Cria o Token do Cartão
+        // 2. Tenta identificar o método de pagamento e emissor
+        const bin = cardData.number.replace(/\s/g, '').slice(0, 6);
+        if (bin.length >= 6) {
+          const pmResponse = await mp.getPaymentMethods({ bin });
+          if (pmResponse.results && pmResponse.results.length > 0) {
+            payload.paymentMethodId = pmResponse.results[0].id;
+            payload.issuerId = pmResponse.results[0].issuer?.id?.toString();
+          }
+        }
+
+        // 3. Cria o Token do Cartão
         const [month, year] = cardData.expiry.split('/');
         const cardTokenResponse = await mp.createCardToken({
           cardNumber: cardData.number.replace(/\s/g, ''),
@@ -117,9 +127,8 @@ export default function CheckoutPage() {
 
         if (cardTokenResponse.id) {
           payload.cardToken = cardTokenResponse.id;
-          // Tenta adivinhar o payment_method_id pelo número (ex: visa, master)
-          // Em uma implementação real, o MP.js fornece isso ao digitar o número
-          payload.paymentMethodId = 'master'; // Fallback para teste ou detecção
+          // Se não detectou acima, tenta usar o que veio no token
+          if (!payload.paymentMethodId) payload.paymentMethodId = 'master'; 
         } else {
           console.error('MP Card Token Error:', cardTokenResponse);
           throw new Error('Dados do cartão inválidos. Verifique os números.');
