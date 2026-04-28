@@ -53,33 +53,41 @@ export default function ConfirmationPage() {
     setDownloading(true);
 
     try {
-      // Configuration for high quality capture
+      // Pequena pausa para garantir que o DOM está pronto
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 2, // Scale 2 is enough for mobile and avoids memory issues
+        scale: 3, // Aumentando a qualidade para impressão
         backgroundColor: '#FFF9FA',
         logging: false,
-        useCORS: true,
-        allowTaint: true,
-        windowWidth: 800
+        useCORS: true, // Crucial para imagens externas
+        allowTaint: false,
+        proxy: undefined,
+        scrollX: 0,
+        scrollY: -window.scrollY, // Resolve problemas de deslocamento se a página estiver com scroll
+        onclone: (clonedDoc) => {
+          // Garante que o elemento clonado seja visível para a captura
+          const el = clonedDoc.querySelector('[ref="ticketRef"]') as HTMLElement;
+          if (el) el.style.display = 'flex';
+        }
       });
       
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [canvas.width / 2, canvas.height / 2]
+        format: [canvas.width / 3, canvas.height / 3]
       });
 
-      pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 3, canvas.height / 3);
       
       const fileName = `ingresso-cha-com-prosa-${participantData.name.split(' ')[0].toLowerCase()}.pdf`;
       pdf.save(fileName);
       
-      // Success feedback in console
-      console.log('Ticket generated successfully:', fileName);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Houve um erro ao gerar o PDF automaticamente. Por favor, tente tirar um print da tela como alternativa.');
+      console.log('Ticket gerado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro detalhado PDF:', error);
+      alert('Ops! Ocorreu um erro técnico ao gerar o PDF. Tente novamente ou tire um print da tela.');
     } finally {
       setDownloading(false);
     }
@@ -136,12 +144,12 @@ export default function ConfirmationPage() {
                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Ingresso Especial</p>
                        <h2 className="text-2xl font-serif font-bold italic">Chá com Prosa</h2>
                     </div>
-                    <Image 
+                    <img 
                       src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
                       alt="Logo" 
-                      width={40} 
-                      height={40} 
-                      className="h-10 w-10 object-contain brightness-0 invert opacity-90"
+                      crossOrigin="anonymous"
+                      style={{ height: '40px', width: '40px', objectFit: 'contain' }}
+                      className="brightness-0 invert opacity-90"
                     />
                  </div>
                  <div className="mt-8 relative z-10">
@@ -154,12 +162,12 @@ export default function ConfirmationPage() {
               <div className="flex-1 p-8 space-y-8 relative">
                  {/* Decorative background shapes */}
                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
-                    <Image 
+                    <img 
                       src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
                       alt="BG Pattern" 
-                      width={300} 
-                      height={300} 
-                      className="h-[300px] w-auto animate-pulse"
+                      crossOrigin="anonymous"
+                      style={{ height: '300px', width: 'auto' }}
+                      className="animate-pulse"
                     />
                  </div>
 

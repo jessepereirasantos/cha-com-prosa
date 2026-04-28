@@ -176,6 +176,8 @@ export default function CheckoutPage() {
       }
 
       if (paymentMethod === 'pix') {
+        localStorage.setItem('last_ticket_id', result.id);
+        localStorage.setItem('last_ticket_name', data.name);
         setPixData({
           paymentId: result.payment_id,
           qrCode: result.qr_code,
