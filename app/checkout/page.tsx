@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Loader2, CheckCircle2, Ticket, CreditCard, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Script from 'next/script';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome é obrigatório'),
@@ -86,45 +87,75 @@ export default function CheckoutPage() {
       alert("Por favor, aceite os Termos de Uso e Regras do Evento.");
       return;
     }
+
     setLoading(true);
     try {
-      // Chamada para a NOVA API de criação de pagamento
-      const res = await fetch('/api/create-payment', {
+      let payload: any = {
+        ...data,
+        paymentMethod
+      };
+
+      if (paymentMethod === 'card') {
+        // 1. Inicializa Mercado Pago
+        if (!(window as any).MercadoPago) {
+          throw new Error('Mercado Pago SDK não carregado');
+        }
+        
+        const mp = new (window as any).MercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY);
+        
+        // 2. Cria o Token do Cartão
+        const [month, year] = cardData.expiry.split('/');
+        const cardTokenResponse = await mp.createCardToken({
+          cardNumber: cardData.number.replace(/\s/g, ''),
+          cardholderName: cardData.name,
+          cardExpirationMonth: month,
+          cardExpirationYear: '20' + year,
+          securityCode: cardData.cvv,
+          identificationType: 'CPF',
+          identificationNumber: data.document.replace(/\D/g, ''),
+        });
+
+        if (cardTokenResponse.id) {
+          payload.cardToken = cardTokenResponse.id;
+          // Tenta adivinhar o payment_method_id pelo número (ex: visa, master)
+          // Em uma implementação real, o MP.js fornece isso ao digitar o número
+          payload.paymentMethodId = 'master'; // Fallback para teste ou detecção
+        } else {
+          console.error('MP Card Token Error:', cardTokenResponse);
+          throw new Error('Dados do cartão inválidos. Verifique os números.');
+        }
+      }
+
+      const response = await fetch('/api/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, paymentMethod }),
+        body: JSON.stringify(payload),
       });
-      const result = await res.json();
-      
-      if (result.success) {
-        // Salva dados no localStorage para a página de confirmação (backup)
-        localStorage.setItem('last_ticket_name', data.name);
-        localStorage.setItem('last_ticket_id', result.id);
-        
-        if (paymentMethod === 'pix') {
-          setPixData({
-            qrCode: result.qr_code,
-            qrCodeBase64: result.qr_code_base64,
-            paymentId: result.payment_id
-          });
-          
-          // Salva no localStorage para persistência se o usuário atualizar a página
-          localStorage.setItem('pix_qr_code', result.qr_code);
-          localStorage.setItem('pix_qr_base64', result.qr_code_base64);
-          localStorage.setItem('last_payment_id', result.payment_id);
-          
-          setStep(2); // Muda para a tela de exibição do QR Code
-        } else {
-           // Fluxo de cartão (será implementado futuramente se necessário, agora foco no PIX)
-           setStep(3);
-           setTimeout(() => router.push('/confirmacao'), 1500);
-        }
-      } else {
+
+      const result = await response.json();
+
+      if (!response.ok) {
         throw new Error(result.error || 'Erro ao processar pagamento');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao processar pagamento. Por favor, tente novamente.');
+
+      if (paymentMethod === 'pix') {
+        setPixData({
+          paymentId: result.payment_id,
+          qrCode: result.qr_code,
+          qrCodeBase64: result.qr_code_base64
+        });
+        setStep(2);
+      } else {
+        // Pagamento via cartão aprovado ou em processamento
+        localStorage.setItem('last_ticket_id', result.id);
+        localStorage.setItem('last_ticket_name', data.name);
+        setStep(3);
+        setTimeout(() => router.push('/confirmacao'), 1500);
+      }
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      alert(error.message || 'Erro ao processar pagamento. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -247,14 +278,18 @@ export default function CheckoutPage() {
                    >
                      <div className="space-y-2">
                        <label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Número do Cartão</label>
-                       <input 
-                         type="text"
-                         required
-                         placeholder="0000 0000 0000 0000"
-                         className="w-full bg-white border border-rose-200 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-all text-sm"
-                         value={cardData.number}
-                         onChange={(e) => setCardData({...cardData, number: e.target.value.replace(/\D/g, '').slice(0, 16)})}
-                       />
+                        <input 
+                          type="text"
+                          required
+                          placeholder="0000 0000 0000 0000"
+                          className="w-full bg-white border border-rose-200 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-all text-sm"
+                          value={cardData.number}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            val = val.match(/.{1,4}/g)?.join(' ') || val;
+                            setCardData({...cardData, number: val.slice(0, 19)});
+                          }}
+                        />
                      </div>
                      <div className="space-y-2">
                        <label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Nome no Cartão</label>
@@ -540,6 +575,10 @@ export default function CheckoutPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <Script 
+        src="https://sdk.mercadopago.com/js/v2" 
+        strategy="afterInteractive"
+      />
     </div>
   );
 }

@@ -17,21 +17,37 @@ export async function POST(req: Request) {
       email, 
       phone, 
       document, 
-      paymentMethod: 'pix' 
+      paymentMethod 
     });
 
     // 2. Cria pagamento no Mercado Pago
     let mpPayment;
     try {
-      mpPayment = await createPixPayment({
-        id: ticket.id,
-        name,
-        email,
-        document,
-      });
+      if (paymentMethod === 'card') {
+        const { cardToken, paymentMethodId, installments } = body;
+        if (!cardToken) return NextResponse.json({ error: 'Token do cartão ausente' }, { status: 400 });
+        
+        mpPayment = await createCardPayment({
+          id: ticket.id,
+          name,
+          email,
+          document,
+          cardToken,
+          paymentMethodId,
+          installments: parseInt(installments) || 1
+        });
+      } else {
+        mpPayment = await createPixPayment({
+          id: ticket.id,
+          name,
+          email,
+          document,
+        });
+      }
     } catch (mpError: any) {
-      console.error('Mercado Pago API Error:', mpError);
-      return NextResponse.json({ error: 'Erro ao gerar pagamento no Mercado Pago' }, { status: 500 });
+      console.error('Mercado Pago API Error Detail:', mpError?.message || mpError);
+      const errorMessage = mpError?.cause?.[0]?.description || 'Erro ao processar pagamento no Mercado Pago';
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     const paymentId = mpPayment.id?.toString();
