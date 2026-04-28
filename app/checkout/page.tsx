@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { z } from 'zod';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Loader2, CheckCircle2, Ticket, CreditCard, QrCode } from 'lucide-react';
 import Link from 'next/link';
@@ -375,9 +375,18 @@ export default function CheckoutPage() {
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setAgreed(e.target.checked)}
                       className="w-4 h-4 rounded text-primary focus:ring-primary border-rose-200"
                     />
-                    <label htmlFor="agree-terms" className="text-[10px] uppercase font-bold tracking-widest text-primary/60 cursor-pointer">
-                      Li e concordo com as <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline underline-offset-2">Regras e Termos de Uso</button>
-                    </label>
+                    <div className="text-[10px] uppercase font-bold tracking-widest text-primary/60">
+                      Li e concordo com as 
+                      <span 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowTerms(true);
+                        }} 
+                        className="text-primary hover:underline underline-offset-2 cursor-pointer ml-1"
+                      >
+                        Regras e Termos de Uso
+                      </span>
+                    </div>
                  </div>
               </div>
 
