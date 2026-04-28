@@ -10,7 +10,8 @@
  *   status ENUM('pending', 'paid', 'cancelled', 'used') DEFAULT 'pending',
  *   createdAt DATETIME NOT NULL,
  *   paymentMethod ENUM('pix', 'card'),
- *   code VARCHAR(20) UNIQUE NOT NULL
+ *   code VARCHAR(20) UNIQUE NOT NULL,
+ *   paymentIdMP VARCHAR(100)
  * );
  * 
  * CREATE TABLE coupons (
@@ -20,8 +21,8 @@
  *   createdAt DATETIME NOT NULL
  * );
  */
-import { Ticket, AppSettings, TicketStatus, Coupon } from './types';
-import { query } from './mysql';
+import { Ticket, AppSettings, TicketStatus, Coupon } from '@/lib/types';
+import { query } from '@/lib/mysql';
 
 export async function addTicket(ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'code'>) {
   const id = Math.random().toString(36).substring(2, 9);
@@ -30,8 +31,8 @@ export async function addTicket(ticket: Omit<Ticket, 'id' | 'createdAt' | 'statu
   const createdAt = new Date().toISOString();
 
   await query(
-    'INSERT INTO tickets (id, name, email, phone, document, status, createdAt, paymentMethod, code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, ticket.name, ticket.email, ticket.phone, ticket.document || null, status, createdAt, ticket.paymentMethod || null, code]
+    'INSERT INTO tickets (id, name, email, phone, document, status, createdAt, paymentMethod, code, paymentIdMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, ticket.name, ticket.email, ticket.phone, ticket.document || null, status, createdAt, ticket.paymentMethod || null, code, (ticket as any).paymentIdMP || null]
   );
 
   return { ...ticket, id, code, status, createdAt };

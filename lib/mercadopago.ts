@@ -6,7 +6,7 @@ const client = new MercadoPagoConfig({
 
 const getWebhookUrl = () =>
   process.env.MERCADO_PAGO_WEBHOOK_URL ||
-  `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/mercadopago`;
+  `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhook`;
 
 /**
  * Cria pagamento PIX transparente (sem redirecionamento).

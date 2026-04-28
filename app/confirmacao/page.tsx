@@ -96,7 +96,6 @@ export default function ConfirmationPage() {
               width={32} 
               height={32} 
               className="h-8 w-8 object-contain transition-transform group-hover:rotate-12"
-              referrerPolicy="no-referrer"
             />
             <span className="text-xl sm:text-2xl font-serif text-primary font-bold italic">Chá com Prosa</span>
           </Link>
@@ -143,7 +142,6 @@ export default function ConfirmationPage() {
                       width={40} 
                       height={40} 
                       className="h-10 w-10 object-contain brightness-0 invert opacity-90"
-                      referrerPolicy="no-referrer"
                     />
                  </div>
                  <div className="mt-8 relative z-10">
@@ -162,7 +160,6 @@ export default function ConfirmationPage() {
                       width={300} 
                       height={300} 
                       className="h-[300px] w-auto animate-pulse"
-                      referrerPolicy="no-referrer"
                     />
                  </div>
 
@@ -231,57 +228,13 @@ export default function ConfirmationPage() {
               </div>
             </div>
 
-            {/* Bloco PIX — exibido apenas quando o método de pagamento for PIX */}
-            {pixData?.qrCode && (
-              <div className="mt-8 bg-white border border-rose-100 rounded-[24px] shadow-sm p-8 text-center space-y-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-                  Pague com PIX para confirmar sua vaga
-                </p>
-
-                {/* QR Code */}
-                <div className="flex justify-center">
-                  {pixData.qrCodeBase64 ? (
-                    <img
-                      src={`data:image/png;base64,${pixData.qrCodeBase64}`}
-                      alt="QR Code PIX"
-                      className="w-48 h-48 rounded-xl border border-rose-100 shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-48 h-48 bg-rose-50 rounded-xl border border-rose-100 flex items-center justify-center">
-                      <QrCode className="w-24 h-24 text-primary/30" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Copia e Cola */}
-                <div className="space-y-3">
-                  <p className="text-xs text-stone-500 font-medium">Ou copie o código PIX:</p>
-                  <div className="relative">
-                    <input
-                      readOnly
-                      value={pixData.qrCode}
-                      className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 text-xs font-mono text-stone-600 outline-none pr-28 truncate"
-                    />
-                    <button
-                      onClick={copyPixCode}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95"
-                    >
-                      {pixData.copied ? '✓ Copiado' : 'Copiar'}
-                    </button>
-                  </div>
-                </div>
-
-                {pixData.expiresAt && (
-                  <p className="text-[10px] text-stone-400 italic">
-                    Expira em: {new Date(pixData.expiresAt).toLocaleString('pt-BR')}
-                  </p>
-                )}
-
-                <p className="text-[10px] text-stone-400 italic leading-relaxed">
-                  Após o pagamento, você receberá a confirmação por e-mail e WhatsApp.
-                </p>
-              </div>
-            )}
+            {/* Mensagem de Instrução Final */}
+            <div className="mt-8 bg-white border border-rose-100 rounded-[24px] shadow-sm p-8 text-center space-y-2">
+               <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Pagamento Confirmado</p>
+               <p className="text-stone-500 text-sm italic">
+                 Sua inscrição foi processada com sucesso. Você já pode baixar seu ingresso ou apresentá-lo através do e-mail/WhatsApp que enviamos.
+               </p>
+            </div>
 
             <div className="mt-8 space-y-4">
               <button

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, Ticket, CreditCard, QrCode } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Ticket, CreditCard, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -33,12 +33,41 @@ export default function CheckoutPage() {
 
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string; paymentId: string } | null>(null);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // POLLING: Verifica status do pagamento a cada 3 segundos
+  useEffect(() => {
+    let interval: any;
+
+    if (pixData?.paymentId && step === 2) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/payment-status?id=${pixData.paymentId}`);
+          const data = await res.json();
+
+          if (data.status === 'approved') {
+            clearInterval(interval);
+            setStep(3); // Mostra sucesso
+            setTimeout(() => {
+              router.push('/confirmacao');
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [pixData, step, router]);
+
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, '');
     if (val.length > 11) val = val.slice(0, 11);
     
@@ -52,46 +81,44 @@ export default function CheckoutPage() {
     setValue('phone', val);
   };
 
-  const onSubmit = async (data: FormData) => {
+  const handleFormSubmit = async (data: FormData) => {
     if (!agreed) {
       alert("Por favor, aceite os Termos de Uso e Regras do Evento.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/tickets', {
+      // Chamada para a NOVA API de criação de pagamento
+      const res = await fetch('/api/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, paymentMethod, cardData: paymentMethod === 'card' ? cardData : null }),
+        body: JSON.stringify({ ...data, paymentMethod }),
       });
       const result = await res.json();
       
       if (result.success) {
-        // Salva dados para a tela de confirmação
+        // Salva dados no localStorage para a página de confirmação (backup)
         localStorage.setItem('last_ticket_name', data.name);
         localStorage.setItem('last_ticket_id', result.id);
-
-        // Salva dados do PIX se disponíveis
-        if (result.pixData?.qrCode) {
-          localStorage.setItem('pix_qr_code', result.pixData.qrCode);
-        }
-        if (result.pixData?.qrCodeBase64) {
-          localStorage.setItem('pix_qr_base64', result.pixData.qrCodeBase64);
-        }
-        if (result.pixData?.expiresAt) {
-          localStorage.setItem('pix_expires_at', result.pixData.expiresAt);
-        }
         
-        setStep(3); // Mostra animação de sucesso
-        setTimeout(() => {
-          router.push('/confirmacao');
-          // Fallback
-          setTimeout(() => {
-            if (window.location.pathname !== '/confirmacao') {
-              window.location.href = '/confirmacao';
-            }
-          }, 3000);
-        }, 1500);
+        if (paymentMethod === 'pix') {
+          setPixData({
+            qrCode: result.qr_code,
+            qrCodeBase64: result.qr_code_base64,
+            paymentId: result.payment_id
+          });
+          
+          // Salva no localStorage para persistência se o usuário atualizar a página
+          localStorage.setItem('pix_qr_code', result.qr_code);
+          localStorage.setItem('pix_qr_base64', result.qr_code_base64);
+          localStorage.setItem('last_payment_id', result.payment_id);
+          
+          setStep(2); // Muda para a tela de exibição do QR Code
+        } else {
+           // Fluxo de cartão (será implementado futuramente se necessário, agora foco no PIX)
+           setStep(3);
+           setTimeout(() => router.push('/confirmacao'), 1500);
+        }
       } else {
         throw new Error(result.error || 'Erro ao processar pagamento');
       }
@@ -114,7 +141,6 @@ export default function CheckoutPage() {
               width={32} 
               height={32} 
               className="h-8 w-8 object-contain"
-              referrerPolicy="no-referrer"
             />
             <span className="text-2xl font-serif text-primary font-bold italic">Chá com Prosa</span>
           </Link>
@@ -139,7 +165,7 @@ export default function CheckoutPage() {
             <h1 className="text-4xl font-serif text-primary font-bold">Seus Dados</h1>
           </motion.div>
 
-          <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8 bg-white p-8 md:p-10 border-l-4 border-[#D98BB0] rounded-[16px] shadow-sm transition-all duration-300 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+          <form id="checkout-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8 bg-white p-8 md:p-10 border-l-4 border-[#D98BB0] rounded-[16px] shadow-sm transition-all duration-300 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Nome Completo</label>
@@ -165,11 +191,9 @@ export default function CheckoutPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Whatsapp</label>
                 <input 
-                  {...register('phone')}
-                  onChange={(e) => {
-                    register('phone').onChange(e);
-                    handlePhoneChange(e);
-                  }}
+                  {...register('phone', {
+                    onChange: (e) => handlePhoneChange(e)
+                  })}
                   className="w-full bg-rose-50/30 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   placeholder="(11) 90000-0000"
                 />
@@ -348,7 +372,7 @@ export default function CheckoutPage() {
                       type="checkbox" 
                       id="agree-terms"
                       checked={agreed}
-                      onChange={(e) => setAgreed(e.target.checked)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setAgreed(e.target.checked)}
                       className="w-4 h-4 rounded text-primary focus:ring-primary border-rose-200"
                     />
                     <label htmlFor="agree-terms" className="text-[10px] uppercase font-bold tracking-widest text-primary/60 cursor-pointer">
@@ -448,11 +472,47 @@ export default function CheckoutPage() {
               className="bg-white rounded-3xl p-12 max-w-md w-full text-center shadow-2xl border border-rose-100"
             >
               {step === 2 && (
-                <div className="space-y-8">
-                  <div className="w-20 h-20 border-4 border-rose-100 border-t-primary rounded-full animate-spin mx-auto" />
-                  <div>
-                    <h2 className="text-3xl font-serif text-primary font-bold mb-2">Redirecionando</h2>
-                    <p className="text-stone-500 text-sm italic">Estamos preparando seu checkout seguro no Mercado Pago...</p>
+                <div className="space-y-6">
+                  <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto text-primary mb-4">
+                    <QrCode className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-serif text-primary font-bold">Escaneie o QR Code</h2>
+                  <p className="text-stone-500 text-xs italic">Acesse o app do seu banco e pague via PIX para confirmar sua vaga agora mesmo.</p>
+                  
+                  {pixData?.qrCodeBase64 && (
+                    <div className="bg-white p-4 rounded-2xl border-2 border-rose-100 inline-block mx-auto shadow-sm">
+                      <img 
+                        src={`data:image/png;base64,${pixData.qrCodeBase64}`} 
+                        alt="QR Code Pix"
+                        className="w-48 h-48 mx-auto"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-3 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Pix Copia e Cola</p>
+                    <div className="flex gap-2">
+                       <input 
+                         type="text" 
+                         readOnly 
+                         value={pixData?.qrCode || ''} 
+                         className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-[10px] font-mono text-stone-500 truncate"
+                       />
+                       <button 
+                         onClick={() => {
+                           navigator.clipboard.writeText(pixData?.qrCode || '');
+                           alert('Código PIX copiado!');
+                         }}
+                         className="bg-primary text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase"
+                       >
+                         Copiar
+                       </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-rose-50 flex items-center justify-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Aguardando confirmação do banco...</p>
                   </div>
                 </div>
               )}

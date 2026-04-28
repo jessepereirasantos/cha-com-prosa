@@ -15,6 +15,7 @@ export interface Ticket {
   createdAt: string;
   paymentMethod?: 'pix' | 'card';
   paymentId?: string;
+  paymentIdMP?: string;
   code: string; // Used for the QR code simulation
 }
 
