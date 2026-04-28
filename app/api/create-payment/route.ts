@@ -72,6 +72,9 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Create Payment Error:', error);
-    return NextResponse.json({ error: 'Erro interno ao processar pagamento' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Erro técnico: ' + (error.message || 'Erro desconhecido'),
+      details: error.code // Ex: ETIMEDOUT ou ECONNREFUSED
+    }, { status: 500 });
   }
 }
