@@ -28,7 +28,7 @@ export async function addTicket(ticket: Omit<Ticket, 'id' | 'createdAt' | 'statu
   const id = Math.random().toString(36).substring(2, 9);
   const code = Math.random().toString(36).substring(2, 10).toUpperCase();
   const status = TicketStatus.PENDING;
-  const createdAt = new Date().toISOString();
+  const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
   await query(
     'INSERT INTO tickets (id, name, email, phone, document, status, createdAt, paymentMethod, code, paymentIdMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
