@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6b002a;
+  --color-primary-container: #8c1c3f;
+  --color-secondary-container: #fdbeca;
+  --color-background: #fcf9f7;
+  --color-surface: #fcf9f7;
+  --color-on-surface: #1b1c1b;
+  --color-on-surface-variant: #564145;
+  --color-burgundy-50: #fdf2f4;
+  --color-burgundy-100: #fce7eb;
+  --color-burgundy-200: #f9d1da;
+  --color-burgundy-600: #6b002a;
+  --color-burgundy-700: #5a0023;
+  --color-burgundy-900: #3c0017;
+  
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface selection:bg-secondary-container selection:text-primary;
+  }
+}
+
+.floral-accent {
+  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAc75f0-KKimOTTMu2rnmnUxbkoODeBBkYg4W9ey6L5LI9rNBE8t6uyg4jCm3kZcPrl3660iw9HJz5BXtBwSuRXXxHBszyfMVod62gd55pR_bHOO2GFBMqpAMa-TmBV1CwmQUKt0m4nD2AA3fCiRffYFhB0CEmk8apqMXQUV4a1OmFT_-X5Oc_GqlEQHF1_mCvpNaYh6k-rFB1HG0LqxAOJlP8vQ8TVHK4e_TJ6TuLWEne-f4eCHwlyPnaWO4i3HkyfzLsZr2Doytc);
+  opacity: 0.05;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #fcf9f7 0%, #fdbeca 100%);
+}
