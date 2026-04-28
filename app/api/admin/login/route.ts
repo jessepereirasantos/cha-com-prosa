@@ -14,7 +14,6 @@ export async function POST(req: Request) {
     // Define o cookie de autenticação com 24h de validade
     const cookieStore = await cookies();
     cookieStore.set('admin_auth', 'true', {
-      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 24 horas
