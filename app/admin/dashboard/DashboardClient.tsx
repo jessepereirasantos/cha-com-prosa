@@ -9,7 +9,7 @@ import {
   Tag, Plus, Trash2, Edit3, Printer, Mail, Phone, Eye, RefreshCw,
   X
 } from 'lucide-react';
-import { Ticket as TicketType, TicketStatus, Coupon } from '@/lib/types';
+import { Ticket as TicketType, TicketStatus, Coupon } from '../../../lib/types';
 import Link from 'next/link';
 import Image from 'next/image';
 
