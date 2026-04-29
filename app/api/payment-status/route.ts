@@ -15,8 +15,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'ID do pagamento não fornecido' }, { status: 400 });
     }
 
+    console.log(`[POLLING] Verificando status oficial para pagamento: ${paymentId}`);
     const mpPayment = await getPaymentStatus(paymentId);
     const status = mpPayment.status;
+
+    console.log(`[POLLING] Status oficial retornado: ${status}`);
 
     // Se aprovado, garante que o banco está atualizado
     if (status === 'approved') {
@@ -25,6 +28,8 @@ export async function GET(req: Request) {
       const ticket = rows[0];
 
       if (ticket && ticket.status === 'pending') {
+        console.log(`[POLLING] Detectada aprovação oficial. Atualizando ticket ${ticket.id}...`);
+        
         // Atualiza status no banco
         await updateTicketStatus(ticket.id, TicketStatus.PAID);
         
@@ -35,7 +40,7 @@ export async function GET(req: Request) {
              await sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`);
           }
         } catch (msgErr) {
-          console.error('Messaging error during status check:', msgErr);
+          console.error('[POLLING] Messaging error during status check:', msgErr);
         }
       }
     }
@@ -44,8 +49,8 @@ export async function GET(req: Request) {
       status: status === 'approved' ? 'approved' : 'pending' 
     });
 
-  } catch (error) {
-    console.error('Status Check Error:', error);
+  } catch (error: any) {
+    console.error('[POLLING] Error:', error.message);
     return NextResponse.json({ status: 'pending' });
   }
 }

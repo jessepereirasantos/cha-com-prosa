@@ -129,15 +129,26 @@ export default function CheckoutPage() {
           throw new Error('Mercado Pago SDK não carregado');
         }
         
-        const mp = new (window as any).MercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY);
+        const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY;
+        
+        if (!publicKey) {
+          console.error("ERRO CRÍTICO: Public key do Mercado Pago não definida (NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY)");
+          throw new Error('Erro de configuração do sistema de pagamentos. Informe o administrador.');
+        }
+
+        const mp = new (window as any).MercadoPago(publicKey);
         
         // 2. Tenta identificar o método de pagamento e emissor
         const bin = cardData.number.replace(/\s/g, '').slice(0, 6);
         if (bin.length >= 6) {
-          const pmResponse = await mp.getPaymentMethods({ bin });
-          if (pmResponse.results && pmResponse.results.length > 0) {
-            payload.paymentMethodId = pmResponse.results[0].id;
-            payload.issuerId = pmResponse.results[0].issuer?.id?.toString();
+          try {
+            const pmResponse = await mp.getPaymentMethods({ bin });
+            if (pmResponse.results && pmResponse.results.length > 0) {
+              payload.paymentMethodId = pmResponse.results[0].id;
+              payload.issuerId = pmResponse.results[0].issuer?.id?.toString();
+            }
+          } catch (binError) {
+            console.warn('Erro ao identificar bandeira:', binError);
           }
         }
 
