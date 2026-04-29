@@ -1,134 +1,39 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { CheckCircle2, Ticket, Calendar, MapPin, Download, Loader2, QrCode, Clock } from 'lucide-react';
+import { CheckCircle2, Ticket, Calendar, MapPin, Download, QrCode, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRef, useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
+import { useState, useEffect } from 'react';
 
 export default function ConfirmationPage() {
-  const ticketRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
   const [participantData, setParticipantData] = useState({
     name: 'PARTICIPANTE',
-    id: '#000000'
+    id: '000000'
   });
-  const [pixData, setPixData] = useState<{
-    qrCode: string | null;
-    qrCodeBase64: string | null;
-    expiresAt: string | null;
-    copied: boolean;
-  } | null>(null);
 
   useEffect(() => {
     const savedName = localStorage.getItem('last_ticket_name');
     const savedId   = localStorage.getItem('last_ticket_id');
-    const qrCode    = localStorage.getItem('pix_qr_code');
-    const qrBase64  = localStorage.getItem('pix_qr_base64');
-    const expiresAt = localStorage.getItem('pix_expires_at');
 
-    requestAnimationFrame(() => {
+    if (savedId) {
       setParticipantData({
         name: savedName || 'PARTICIPANTE',
-        id: savedId ? `#${savedId.slice(-6).toUpperCase()}` : '#000000'
+        id: savedId
       });
 
-      if (qrCode) {
-        setPixData({ qrCode, qrCodeBase64: qrBase64, expiresAt, copied: false });
-      }
-    });
+      // Download automático profissional via window.location.href
+      // Comentado para dar tempo de ver a página, mas pode ser descomentado se desejar 100% automático
+      // setTimeout(() => {
+      //   window.location.href = `/api/generate-ticket?id=${savedId}`;
+      // }, 2000);
+    }
   }, []);
 
-  const copyPixCode = async () => {
-    if (!pixData?.qrCode) return;
-    await navigator.clipboard.writeText(pixData.qrCode);
-    setPixData(prev => prev ? { ...prev, copied: true } : null);
-    setTimeout(() => setPixData(prev => prev ? { ...prev, copied: false } : null), 3000);
-  };
-
-  const handleDownloadTicket = async () => {
-    const originalTicket = document.getElementById('ticket');
-    if (!originalTicket) return;
-    setDownloading(true);
-
-    let clone: HTMLElement | null = null;
-
-    try {
-      // 1. Criar o clone do elemento
-      clone = originalTicket.cloneNode(true) as HTMLElement;
-      clone.id = 'ticket-export-clone';
-      
-      // 2. Estilizar o clone para ser invisível mas renderizável
-      // Usamos uma largura fixa baseada no original para manter a proporção
-      const originalWidth = originalTicket.offsetWidth;
-      Object.assign(clone.style, {
-        position: 'fixed',
-        left: '-9999px',
-        top: '0',
-        width: `${originalWidth}px`,
-        height: 'auto',
-        opacity: '1',
-        zIndex: '-1',
-        transform: 'none',
-        transition: 'none'
-      });
-
-      document.body.appendChild(clone);
-
-      // 3. Limpeza do Clone (Remover o que bloqueia o html2canvas)
-      // Remover filtros que o html2canvas não suporta
-      const filters = clone.querySelectorAll('.brightness-0, .invert, .filter');
-      filters.forEach(el => {
-        (el as HTMLElement).classList.remove('brightness-0', 'invert', 'filter');
-        // Garantir que o logo fique visível (cinza escuro/preto) se for o caso
-        if ((el as HTMLElement).tagName === 'IMG') {
-          (el as HTMLElement).style.filter = 'none';
-        }
-      });
-
-      // Remover animações
-      const animated = clone.querySelectorAll('.animate-pulse');
-      animated.forEach(el => {
-        (el as HTMLElement).classList.remove('animate-pulse');
-        (el as HTMLElement).style.animation = 'none';
-      });
-
-      // Pequena pausa para o navegador processar o novo elemento no DOM
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      // 4. Captura do Clone
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: originalWidth,
-        height: originalTicket.offsetHeight,
-      });
-
-      // 5. Download do PNG
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const link = document.createElement('a');
-      const firstName = participantData.name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-      link.download = `ingresso-${firstName || 'ticket'}.png`;
-      link.href = imgData;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      console.log('Download concluído via clone');
-    } catch (error: any) {
-      console.error('Erro na exportação do ticket:', error);
-      alert('Não foi possível gerar a imagem do ingresso automaticamente. Por favor, tire um print da tela para garantir seu acesso.');
-    } finally {
-      // 6. Limpeza (Remover o clone do DOM)
-      if (clone && document.body.contains(clone)) {
-        document.body.removeChild(clone);
-      }
-      setDownloading(false);
-    }
+  const handleDownloadTicket = () => {
+    if (!participantData.id) return;
+    // Download profissional via Backend (PDF real)
+    window.location.href = `/api/generate-ticket?id=${participantData.id}`;
   };
 
   return (
@@ -162,16 +67,15 @@ export default function ConfirmationPage() {
             <p className="text-stone-500 italic">Preparamos um lugar especial para você.</p>
           </motion.div>
 
-          {/* New Professional Ticket Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
             className="relative"
           >
+            {/* Visual do Ticket na Tela */}
             <div 
               id="ticket"
-              ref={ticketRef}
               className="bg-white rounded-[32px] overflow-hidden flex flex-col"
               style={{ 
                 minHeight: '520px', 
@@ -183,7 +87,6 @@ export default function ConfirmationPage() {
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
               }}
             >
-              {/* Header */}
               <div className="p-8 text-white relative" style={{ background: 'linear-gradient(to right, #C87A9F, #D98BB0)' }}>
                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
                  <div className="flex justify-between items-start relative z-10">
@@ -200,14 +103,12 @@ export default function ConfirmationPage() {
                     />
                  </div>
                  <div className="mt-8 relative z-10">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#FFF0F5] mb-1 text-white">Edição 2026</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#FFF0F5] mb-1">Edição 2026</p>
                     <h3 className="text-3xl font-serif font-bold leading-tight">Mulheres com Propósito</h3>
                  </div>
               </div>
 
-              {/* Main Body */}
               <div className="flex-1 p-8 space-y-8 relative">
-                 {/* Decorative background shapes */}
                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.03 }}>
                     <img 
                       src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
@@ -257,9 +158,7 @@ export default function ConfirmationPage() {
                  </div>
               </div>
 
-              {/* Footer / Stub Section */}
               <div className="relative border-t-2 border-dashed p-8 pt-10" style={{ borderTopColor: '#ffe4e6', backgroundColor: '#fff1f2' }}>
-                 {/* Ticket notches */}
                  <div className="absolute top-0 -left-4 w-8 h-8 bg-[#FFF9FA] rounded-full border border-rose-100 -translate-y-1/2" />
                  <div className="absolute top-0 -right-4 w-8 h-8 bg-[#FFF9FA] rounded-full border border-rose-100 -translate-y-1/2" />
                  
@@ -277,28 +176,26 @@ export default function ConfirmationPage() {
                           CONFIRMADO
                        </div>
                        <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: '#a8a29e' }}>Código do Ticket</p>
-                       <p className="text-xl font-mono font-bold tracking-normal" style={{ color: '#44403c' }}>{participantData.id}</p>
+                       <p className="text-xl font-mono font-bold tracking-normal" style={{ color: '#44403c' }}>#{participantData.id.slice(-6).toUpperCase()}</p>
                     </div>
                  </div>
               </div>
             </div>
 
-            {/* Mensagem de Instrução Final */}
             <div className="mt-8 bg-white border border-rose-100 rounded-[24px] shadow-sm p-8 text-center space-y-2">
                <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Pagamento Confirmado</p>
                <p className="text-stone-500 text-sm italic">
-                 Sua inscrição foi processada com sucesso. Você já pode baixar seu ingresso ou apresentá-lo através do e-mail/WhatsApp que enviamos.
+                 Sua inscrição foi processada com sucesso. Você já pode baixar seu ingresso original em PDF.
                </p>
             </div>
 
             <div className="mt-8 space-y-4">
               <button
                 onClick={handleDownloadTicket}
-                disabled={downloading}
-                className="group flex items-center justify-center gap-3 w-full bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] hover:shadow-[0_8px_25px_rgba(217,139,176,0.4)] text-white rounded-2xl py-5 font-serif font-bold text-lg shadow-xl transition-all transform hover:-translate-y-1 active:scale-[0.98] disabled:opacity-70 border border-white/20"
+                className="group flex items-center justify-center gap-3 w-full bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] hover:shadow-[0_8px_25px_rgba(217,139,176,0.4)] text-white rounded-2xl py-5 font-serif font-bold text-lg shadow-xl transition-all transform hover:-translate-y-1 active:scale-[0.98] border border-white/20"
               >
-                {downloading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />}
-                Baixar Ingresso
+                <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />
+                Baixar Ingresso (PDF Original)
               </button>
               
               <Link 
@@ -324,3 +221,4 @@ export default function ConfirmationPage() {
     </div>
   );
 }
+
