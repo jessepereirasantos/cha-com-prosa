@@ -146,7 +146,7 @@ export default function ConfirmationPage() {
             >
               {/* Header */}
               <div className="p-8 text-white relative" style={{ background: 'linear-gradient(to right, #C87A9F, #D98BB0)' }}>
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
                  <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-1">
                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Ingresso Especial</p>
@@ -169,7 +169,7 @@ export default function ConfirmationPage() {
               {/* Main Body */}
               <div className="flex-1 p-8 space-y-8 relative">
                  {/* Decorative background shapes */}
-                 <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
+                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.03 }}>
                     <img 
                       src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
                       alt="BG Pattern" 
@@ -180,7 +180,7 @@ export default function ConfirmationPage() {
                  </div>
 
                  <div className="text-center relative z-10">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Participante Confirmada</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#a8a29e' }}>Participante Confirmada</p>
                     <h4 className="text-3xl font-serif text-primary font-bold uppercase tracking-tight break-words px-4">
                       {participantData.name}
                     </h4>
@@ -192,28 +192,28 @@ export default function ConfirmationPage() {
                           <Calendar className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Data</p>
                        </div>
-                       <p className="text-stone-700 font-medium pl-6">30 de Maio, 2026</p>
+                       <p className="font-medium pl-6" style={{ color: '#44403c' }}>30 de Maio, 2026</p>
                     </div>
                     <div className="space-y-1">
                        <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <MapPin className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Local</p>
                        </div>
-                       <p className="text-stone-700 font-medium pl-6 text-sm">Templo Sede - Rua Estevam Aragoni, 77</p>
+                       <p className="font-medium pl-6 text-sm" style={{ color: '#44403c' }}>Templo Sede - Rua Estevam Aragoni, 77</p>
                     </div>
                     <div className="space-y-1">
                        <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <Clock className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Início</p>
                        </div>
-                       <p className="text-stone-700 font-medium pl-6">18h00</p>
+                       <p className="font-medium pl-6" style={{ color: '#44403c' }}>18h00</p>
                     </div>
                     <div className="space-y-1">
                        <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <Ticket className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Acesso</p>
                        </div>
-                       <p className="text-stone-700 font-medium pl-6">Individual</p>
+                       <p className="font-medium pl-6" style={{ color: '#44403c' }}>Individual</p>
                     </div>
                  </div>
               </div>
@@ -226,8 +226,8 @@ export default function ConfirmationPage() {
                  
                  <div className="flex justify-between items-center gap-8 relative z-10 text-stone-800">
                     <div className="space-y-3">
-                       <div className="p-2 bg-white border border-rose-100 rounded-xl inline-block shadow-sm">
-                          <QrCode className="w-16 h-16 text-stone-800" />
+                       <div className="p-2 border rounded-xl inline-block" style={{ borderColor: '#ffe4e6', backgroundColor: '#ffffff' }}>
+                          <QrCode className="w-16 h-16" style={{ color: '#292524' }} />
                        </div>
                        <p className="text-[10px] uppercase font-bold tracking-widest italic" style={{ color: 'rgba(107, 0, 42, 0.4)' }}>
                          Apresente na entrada
@@ -237,8 +237,8 @@ export default function ConfirmationPage() {
                        <div className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest mb-4 inline-block" style={{ backgroundColor: '#ffe4e6', color: '#6b002a' }}>
                           CONFIRMADO
                        </div>
-                       <p className="text-[10px] font-bold text-stone-400 tracking-widest uppercase">Código do Ticket</p>
-                       <p className="text-xl font-mono text-stone-700 font-bold tracking-normal">{participantData.id}</p>
+                       <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: '#a8a29e' }}>Código do Ticket</p>
+                       <p className="text-xl font-mono font-bold tracking-normal" style={{ color: '#44403c' }}>{participantData.id}</p>
                     </div>
                  </div>
               </div>
