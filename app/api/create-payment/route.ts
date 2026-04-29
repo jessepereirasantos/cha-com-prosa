@@ -66,11 +66,23 @@ export async function POST(req: Request) {
     }
 
     const paymentId = mpPayment.id?.toString();
+    const paymentStatus = mpPayment.status;
     const qrCode = mpPayment.point_of_interaction?.transaction_data?.qr_code;
     const qrCodeBase64 = mpPayment.point_of_interaction?.transaction_data?.qr_code_base64;
 
+    console.log(`[CREATE-PAYMENT] Pagamento ${paymentId} gerado com status: ${paymentStatus} (${paymentMethod})`);
+
     // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago
-    await updateTicket(ticket.id, { paymentIdMP: paymentId });
+    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
+    if (paymentMethod === 'card' && paymentStatus === 'approved') {
+      const { updateTicketStatus } = await import('../../../lib/db');
+      const { TicketStatus } = await import('../../../lib/types');
+      console.log(`[CREATE-PAYMENT] Cartão aprovado instantaneamente. Atualizando ticket ${ticket.id} para PAID.`);
+      await updateTicket(ticket.id, { paymentIdMP: paymentId });
+      await updateTicketStatus(ticket.id, TicketStatus.PAID);
+    } else {
+      await updateTicket(ticket.id, { paymentIdMP: paymentId });
+    }
 
     return NextResponse.json({
       success: true,
@@ -78,7 +90,7 @@ export async function POST(req: Request) {
       payment_id: paymentId,
       qr_code: qrCode,
       qr_code_base64: qrCodeBase64,
-      status: 'pending'
+      status: paymentStatus === 'approved' ? 'approved' : 'pending'
     });
 
   } catch (error: any) {

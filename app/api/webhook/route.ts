@@ -35,19 +35,37 @@ export async function POST(req: Request) {
       console.log(`[WEBHOOK] Consultando status oficial para pagamento: ${dataId}`);
       const mpPayment = await getPaymentStatus(dataId);
       const status = mpPayment.status;
+      const type = mpPayment.payment_type_id;
+      const externalReference = mpPayment.external_reference;
       
-      console.log(`[WEBHOOK] Status oficial retornado: ${status}`);
+      console.log(`[WEBHOOK] Status oficial retornado: ${status} | Tipo: ${type}`);
+
+      if (type === 'credit_card') {
+        console.log(`[WEBHOOK CARTAO] ID: ${dataId} | Status: ${status} | Ref: ${externalReference}`);
+      }
 
       if (status === 'approved') {
-        // Localiza o ticket vinculado a este pagamento
-        const rows = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [dataId]) as any[];
-        const ticket = rows[0];
+        // Tenta localizar o ticket vinculado a este pagamento (pelo ID do pagamento ou pela referência externa)
+        let ticket = null;
+        const rowsById = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [dataId]) as any[];
+        
+        if (rowsById.length > 0) {
+          ticket = rowsById[0];
+        } else if (externalReference) {
+          console.log(`[WEBHOOK] Ticket não encontrado por paymentIdMP. Buscando por external_reference: ${externalReference}`);
+          const rowsByRef = await query('SELECT * FROM tickets WHERE id = ?', [externalReference]) as any[];
+          if (rowsByRef.length > 0) {
+            ticket = rowsByRef[0];
+            // Aproveita para vincular o ID do pagamento se estava faltando
+            await updateTicket(ticket.id, { paymentIdMP: dataId });
+          }
+        }
 
         if (ticket) {
           if (ticket.status === 'pending') {
             // Atualiza status para pago
             await updateTicketStatus(ticket.id, TicketStatus.PAID);
-            console.log(`[WEBHOOK] Ticket ${ticket.id} ATUALIZADO para PAID.`);
+            console.log(`[WEBHOOK] Ticket ${ticket.id} ATUALIZADO para PAID via Webhook.`);
             
             // Dispara comunicações
             try {
@@ -62,7 +80,7 @@ export async function POST(req: Request) {
             console.log(`[WEBHOOK] Ticket ${ticket.id} já estava com status: ${ticket.status}`);
           }
         } else {
-          console.warn(`[WEBHOOK] Nenhum ticket encontrado para o paymentIdMP: ${dataId}`);
+          console.warn(`[WEBHOOK] Nenhum ticket encontrado para o pagamento: ${dataId}`);
         }
       }
     }

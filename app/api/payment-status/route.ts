@@ -23,9 +23,22 @@ export async function GET(req: Request) {
 
     // Se aprovado, garante que o banco está atualizado
     if (status === 'approved') {
-      // Busca o ticket pelo paymentIdMP
-      const rows = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [paymentId]) as any[];
-      const ticket = rows[0];
+      // Busca o ticket pelo paymentIdMP ou pela external_reference (ID do ticket)
+      let ticket = null;
+      const rowsById = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [paymentId]) as any[];
+      
+      if (rowsById.length > 0) {
+        ticket = rowsById[0];
+      } else if (mpPayment.external_reference) {
+        console.log(`[POLLING] Ticket não encontrado por paymentIdMP. Buscando por external_reference: ${mpPayment.external_reference}`);
+        const rowsByRef = await query('SELECT * FROM tickets WHERE id = ?', [mpPayment.external_reference]) as any[];
+        if (rowsByRef.length > 0) {
+          ticket = rowsByRef[0];
+          // Vincula o ID do pagamento se estava faltando
+          const { updateTicket } = await import('../../../lib/db');
+          await updateTicket(ticket.id, { paymentIdMP: paymentId });
+        }
+      }
 
       if (ticket && ticket.status === 'pending') {
         console.log(`[POLLING] Detectada aprovação oficial. Atualizando ticket ${ticket.id}...`);
