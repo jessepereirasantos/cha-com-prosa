@@ -71,7 +71,19 @@ export async function POST(req: Request) {
     const qrCode = mpPayment.point_of_interaction?.transaction_data?.qr_code;
     const qrCodeBase64 = mpPayment.point_of_interaction?.transaction_data?.qr_code_base64;
 
-    console.log(`[DEBUG CARTAO] Pagamento gerado: ${paymentId} | Status: ${paymentStatus}`);
+    // ====== DEBUG CRÍTICO: Dados do pagamento criado ======
+    console.log(`[DEBUG CREATE] ===== DADOS DO PAGAMENTO CRIADO =====`);
+    console.log(`[DEBUG CREATE] payment.id: ${paymentId}`);
+    console.log(`[DEBUG CREATE] payment.status: ${paymentStatus}`);
+    console.log(`[DEBUG CREATE] payment.payment_type_id: ${mpPayment.payment_type_id}`);
+    console.log(`[DEBUG CREATE] payment.external_reference: ${mpPayment.external_reference}`);
+    console.log(`[DEBUG CREATE] ticket.id: ${ticket.id}`);
+    console.log(`[DEBUG CREATE] ticket.code: ${ticket.code}`);
+    console.log(`[DEBUG CREATE] paymentMethod: ${paymentMethod}`);
+
+    // ====== DEBUG CRÍTICO: Verificar ticket no banco ANTES do UPDATE ======
+    const ticketBeforeUpdate = await query('SELECT id, status, paymentIdMP, code FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
+    console.log(`[DEBUG CREATE] Ticket no banco ANTES do update: id=${ticketBeforeUpdate[0]?.id}, status=${ticketBeforeUpdate[0]?.status}, paymentIdMP=${ticketBeforeUpdate[0]?.paymentIdMP}`);
 
     // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.2 - Sync Fix Cartão)
     // Se for cartão e já estiver aprovado ou authorized, atualiza o status no banco na hora!
@@ -80,16 +92,24 @@ export async function POST(req: Request) {
     const isCardApproved = paymentMethod === 'card' && (paymentStatus === 'approved' || paymentStatus === 'authorized');
     if (isCardApproved) {
       console.log(`[CREATE-PAYMENT] Cartão aprovado/authorized. Forçando status PAID para ticket ${ticket.id}.`);
-      await query(
+      const updateResult = await query(
         'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
       ) as any;
+      console.log(`[DEBUG CREATE] UPDATE result: affectedRows=${updateResult.affectedRows}, changedRows=${updateResult.changedRows}`);
+      // Verifica se realmente atualizou
+      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
+      console.log(`[DEBUG CREATE] Ticket DEPOIS do update: status=${ticketAfterUpdate[0]?.status}, paymentIdMP=${ticketAfterUpdate[0]?.paymentIdMP}`);
     } else {
       console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id} (status: ${paymentStatus})`);
-      await query(
+      const updateResult = await query(
         'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
-      );
+      ) as any;
+      console.log(`[DEBUG CREATE] UPDATE paymentIdMP result: affectedRows=${updateResult.affectedRows}`);
+      // Verifica se realmente salvou
+      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
+      console.log(`[DEBUG CREATE] Ticket DEPOIS do update: status=${ticketAfterUpdate[0]?.status}, paymentIdMP=${ticketAfterUpdate[0]?.paymentIdMP}`);
     }
 
     return NextResponse.json({
@@ -98,7 +118,7 @@ export async function POST(req: Request) {
       payment_id: paymentId,
       qr_code: qrCode,
       qr_code_base64: qrCodeBase64,
-      status: paymentStatus === 'approved' ? 'approved' : 'pending'
+      status: (paymentStatus === 'approved' || paymentStatus === 'authorized') ? 'approved' : 'pending'
     });
 
   } catch (error: any) {
