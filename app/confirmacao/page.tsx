@@ -53,23 +53,40 @@ export default function ConfirmationPage() {
     setDownloading(true);
 
     try {
+      // Pequena espera para garantir que o DOM está estável
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const canvas = await html2canvas(ticketElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        onclone: (clonedDoc) => {
+          // Remove animações do elemento clonado para não dar erro na captura
+          const animated = clonedDoc.getElementsByClassName('animate-pulse');
+          for (let i = 0; i < animated.length; i++) {
+            (animated[i] as HTMLElement).classList.remove('animate-pulse');
+          }
+        }
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       
       const link = document.createElement('a');
-      link.download = `ingresso-cha-com-prosa-${participantData.name.split(' ')[0].toLowerCase()}.png`;
+      const firstName = participantData.name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+      link.download = `ingresso-${firstName || 'ticket'}.png`;
       link.href = imgData;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
       console.log('Ticket baixado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao gerar imagem:', error);
-      alert('Ocorreu um erro ao baixar o ingresso. Tente tirar um print da tela.');
+      alert('Ocorreu um erro ao gerar o arquivo do ingresso. Por favor, tente novamente ou tire um print da sua tela.');
     } finally {
       setDownloading(false);
     }
