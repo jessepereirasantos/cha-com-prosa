@@ -133,11 +133,19 @@ export default function ConfirmationPage() {
           >
             <div 
               ref={ticketRef}
-              className="bg-white rounded-[32px] overflow-hidden shadow-2xl shadow-rose-200/40 border border-rose-100 flex flex-col"
-              style={{ minHeight: '520px', width: '100%', maxWidth: '500px', margin: '0 auto' }}
+              className="bg-white rounded-[32px] overflow-hidden flex flex-col"
+              style={{ 
+                minHeight: '520px', 
+                width: '100%', 
+                maxWidth: '500px', 
+                margin: '0 auto',
+                backgroundColor: '#ffffff',
+                border: '1px solid #ffe4e6',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+              }}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-[#C87A9F] to-[#D98BB0] p-8 text-white relative">
+              <div className="p-8 text-white relative" style={{ background: 'linear-gradient(to right, #C87A9F, #D98BB0)' }}>
                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                  <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-1">
@@ -178,30 +186,30 @@ export default function ConfirmationPage() {
                     </h4>
                  </div>
 
-                 <div className="grid grid-cols-2 gap-x-8 gap-y-6 pt-6 border-t border-rose-100 flex-wrap relative z-10">
+                 <div className="grid grid-cols-2 gap-x-8 gap-y-6 pt-6 border-t flex-wrap relative z-10" style={{ borderTopColor: '#ffe4e6' }}>
                     <div className="space-y-1">
-                       <div className="flex items-center gap-2 text-primary">
+                       <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <Calendar className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Data</p>
                        </div>
                        <p className="text-stone-700 font-medium pl-6">30 de Maio, 2026</p>
                     </div>
                     <div className="space-y-1">
-                       <div className="flex items-center gap-2 text-primary">
+                       <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <MapPin className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Local</p>
                        </div>
                        <p className="text-stone-700 font-medium pl-6 text-sm">Templo Sede - Rua Estevam Aragoni, 77</p>
                     </div>
                     <div className="space-y-1">
-                       <div className="flex items-center gap-2 text-primary">
+                       <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <Clock className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Início</p>
                        </div>
                        <p className="text-stone-700 font-medium pl-6">18h00</p>
                     </div>
                     <div className="space-y-1">
-                       <div className="flex items-center gap-2 text-primary">
+                       <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
                           <Ticket className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Acesso</p>
                        </div>
@@ -211,7 +219,7 @@ export default function ConfirmationPage() {
               </div>
 
               {/* Footer / Stub Section */}
-              <div className="relative border-t-2 border-dashed border-rose-100 bg-rose-50/30 p-8 pt-10">
+              <div className="relative border-t-2 border-dashed p-8 pt-10" style={{ borderTopColor: '#ffe4e6', backgroundColor: '#fff1f2' }}>
                  {/* Ticket notches */}
                  <div className="absolute top-0 -left-4 w-8 h-8 bg-[#FFF9FA] rounded-full border border-rose-100 -translate-y-1/2" />
                  <div className="absolute top-0 -right-4 w-8 h-8 bg-[#FFF9FA] rounded-full border border-rose-100 -translate-y-1/2" />
@@ -221,12 +229,12 @@ export default function ConfirmationPage() {
                        <div className="p-2 bg-white border border-rose-100 rounded-xl inline-block shadow-sm">
                           <QrCode className="w-16 h-16 text-stone-800" />
                        </div>
-                       <p className="text-[10px] uppercase font-bold tracking-widest text-primary/40 italic">
+                       <p className="text-[10px] uppercase font-bold tracking-widest italic" style={{ color: 'rgba(107, 0, 42, 0.4)' }}>
                          Apresente na entrada
                        </p>
                     </div>
                     <div className="text-right flex-col flex items-end">
-                       <div className="bg-rose-100 text-primary px-3 py-1 rounded-full text-[10px] font-bold tracking-widest mb-4 inline-block">
+                       <div className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest mb-4 inline-block" style={{ backgroundColor: '#ffe4e6', color: '#6b002a' }}>
                           CONFIRMADO
                        </div>
                        <p className="text-[10px] font-bold text-stone-400 tracking-widest uppercase">Código do Ticket</p>
