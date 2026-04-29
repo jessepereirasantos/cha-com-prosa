@@ -68,7 +68,7 @@ export default function TicketClient({ ticket }: { ticket: Ticket }) {
                    <Calendar className="w-6 h-6 text-primary/60" />
                    <div>
                      <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-stone-400 mb-2">Dia do Encontro</p>
-                     <p className="text-sm font-bold uppercase tracking-widest text-stone-700">30 de Maio de 2026 <br/>Às 18:00h</p>
+                     <p className="text-sm font-bold uppercase tracking-widest text-stone-700">30 de Maio de 2026 <br/>Às 16:00h</p>
                    </div>
                 </div>
                 <div className="flex gap-4">

@@ -540,7 +540,7 @@ export default function CheckoutPage() {
 
                 <section>
                   <h4 className="font-bold text-primary uppercase text-xs tracking-widest mb-2 font-sans">2. Horário e Local</h4>
-                  <p>O evento terá início pontualmente às 18h00 no dia 30 de maio de 2026, no Templo Sede da IADE. Recomendamos a chegada com 15 minutos de antecedência para credenciamento e entrega do Kit de Boas-Vindas.</p>
+                  <p>O evento terá início pontualmente às 16h00 no dia 30 de maio de 2026, no Templo Sede da IADE. Recomendamos a chegada com 15 minutos de antecedência para credenciamento e entrega do Kit de Boas-Vindas.</p>
                 </section>
 
                 <section>

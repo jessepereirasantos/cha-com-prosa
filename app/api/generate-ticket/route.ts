@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
 
     // Hora
     page.drawText('HORÁRIO:', { x: 220, y: detailsY, size: 10, font: fontBold, color: primaryColor });
-    page.drawText('18:00h', { x: 220, y: detailsY - 20, size: 12, font: fontRegular, color: textColor });
+    page.drawText('16:00h', { x: 220, y: detailsY - 20, size: 12, font: fontRegular, color: textColor });
 
     // Local
     page.drawText('LOCAL:', { x: 30, y: detailsY - 60, size: 10, font: fontBold, color: primaryColor });

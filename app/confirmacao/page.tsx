@@ -146,7 +146,7 @@ export default function ConfirmationPage() {
                           <Clock className="w-4 h-4" />
                           <p className="text-[10px] font-bold uppercase tracking-wider">Início</p>
                        </div>
-                       <p className="font-medium pl-6" style={{ color: '#44403c' }}>18h00</p>
+                       <p className="font-medium pl-6" style={{ color: '#44403c' }}>16h00</p>
                     </div>
                     <div className="space-y-1">
                        <div className="flex items-center gap-2" style={{ color: '#6b002a' }}>
