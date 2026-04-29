@@ -140,7 +140,7 @@ export default function Home() {
               </Link>
               <div className="flex items-center gap-2 text-primary font-semibold">
                 <Calendar className="w-5 h-5" />
-                <span className="font-serif italic">30 de Maio às 18h</span>
+                <span className="font-serif italic">30 de Maio às 16h</span>
               </div>
             </div>
           </motion.div>
@@ -190,7 +190,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-widest text-primary font-bold">Horário de Início</p>
-                <h3 className="font-serif text-3xl font-semibold text-on-surface">Às 18h</h3>
+                <h3 className="font-serif text-3xl font-semibold text-on-surface">Às 16h</h3>
               </div>
             </div>
           </div>
@@ -381,7 +381,7 @@ export default function Home() {
                     <div>
                       <h4 className="font-serif text-xl font-bold text-primary">Data e Horário</h4>
                       <p className="text-on-surface-variant">30 de maio de 2026</p>
-                      <p className="text-on-surface-variant italic">Às 18 horas</p>
+                      <p className="text-on-surface-variant italic">Às 16 horas</p>
                     </div>
                   </div>
                 </div>
