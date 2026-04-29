@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     console.log(`[CREATE-PAYMENT] Pagamento ${paymentId} gerado com status: ${paymentStatus} (${paymentMethod})`);
 
-    // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago
+    // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.1 - Sync Fix)
     // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
     if (paymentMethod === 'card' && paymentStatus === 'approved') {
       console.log(`[CREATE-PAYMENT] Cartão aprovado. Forçando status PAID para ticket ${ticket.id}.`);
