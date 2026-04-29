@@ -73,16 +73,19 @@ export async function POST(req: Request) {
 
     console.log(`[DEBUG CARTAO] Pagamento gerado: ${paymentId} | Status: ${paymentStatus}`);
 
-    // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.1 - Sync Fix)
-    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
-    if (paymentMethod === 'card' && paymentStatus === 'approved') {
-      console.log(`[CREATE-PAYMENT] Cartão aprovado. Forçando status PAID para ticket ${ticket.id}.`);
+    // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.2 - Sync Fix Cartão)
+    // Se for cartão e já estiver aprovado ou authorized, atualiza o status no banco na hora!
+    // Nota: Mercado Pago retorna 'authorized' para cartão quando o valor é reservado,
+    // e em seguida envia webhook com 'approved'. Ambos devem marcar como paid.
+    const isCardApproved = paymentMethod === 'card' && (paymentStatus === 'approved' || paymentStatus === 'authorized');
+    if (isCardApproved) {
+      console.log(`[CREATE-PAYMENT] Cartão aprovado/authorized. Forçando status PAID para ticket ${ticket.id}.`);
       await query(
         'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
       ) as any;
     } else {
-      console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id}`);
+      console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id} (status: ${paymentStatus})`);
       await query(
         'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]

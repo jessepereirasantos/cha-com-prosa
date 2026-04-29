@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
-import { updateTicketStatus } from '../../../lib/db';
+import { syncTicketStatus } from '../../../lib/db';
 import { query } from '../../../lib/mysql';
 import { TicketStatus } from '../../../lib/types';
 import { sendTicketEmail } from '../../../lib/email';
@@ -21,8 +21,8 @@ export async function GET(req: Request) {
 
     console.log(`[POLLING] Status oficial retornado: ${status}`);
 
-    // Se aprovado, garante que o banco está atualizado
-    if (status === 'approved') {
+    // Se aprovado ou authorized (cartão), garante que o banco está atualizado
+    if (status === 'approved' || status === 'authorized') {
       // Busca o ticket pelo paymentIdMP ou pela external_reference (ID do ticket)
       let ticket = null;
       const rowsById = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [paymentId]) as any[];
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      status: status === 'approved' ? 'approved' : 'pending'
+      status: (status === 'approved' || status === 'authorized') ? 'approved' : 'pending'
     });
 
   } catch (error: any) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
-import { updateTicketStatus, updateTicket } from '../../../lib/db';
+import { syncTicketStatus, updateTicket } from '../../../lib/db';
 import { query } from '../../../lib/mysql';
 import { TicketStatus } from '../../../lib/types';
 import { sendTicketEmail } from '../../../lib/email';
@@ -9,10 +9,10 @@ import { sendWhatsAppMessage } from '../../../lib/whatsapp';
 export async function POST(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get('type');
-    let dataId = searchParams.get('data.id');
+    const type = searchParams.get('type') || searchParams.get('topic');
+    let dataId = searchParams.get('data.id') || searchParams.get('id');
 
-    // Tenta ler o corpo se não houver data.id nos params (notificações v2)
+    // Tenta ler o corpo se não houver data.id/id nos params (notificações v2)
     if (!dataId) {
       try {
         const body = await req.json();
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         console.log(`[WEBHOOK CARTAO] ID: ${dataId} | Status: ${status} | Ref: ${externalReference}`);
       }
 
-      if (status === 'approved') {
+      if (status === 'approved' || status === 'authorized') {
         console.log(`[DEBUG CARTAO] Iniciando processamento de aprovação...`);
         console.log(`[DEBUG CARTAO] payment_id: ${dataId}`);
         console.log(`[DEBUG CARTAO] status: ${status}`);
@@ -80,8 +80,11 @@ export async function POST(req: Request) {
             } catch (err) {
               console.error('[WEBHOOK] Erro ao enviar comunicações:', err);
             }
+          } else {
+            console.warn(`[WEBHOOK] Nenhum ticket pendente encontrado para o pagamento: ${dataId}`);
           }
-          console.warn(`[WEBHOOK] Nenhum ticket pendente encontrado para o pagamento: ${dataId}`);
+        } else {
+          console.warn(`[WEBHOOK] Nenhum ticket atualizado para o pagamento: ${dataId} (external_reference: ${externalReference || 'N/A'})`);
         }
       }
     }
