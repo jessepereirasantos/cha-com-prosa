@@ -3,6 +3,8 @@ import { getAllTickets, syncTicketStatus } from '../../../../lib/db';
 import { getPaymentStatus } from '../../../../lib/mercadopago';
 import { TicketStatus } from '../../../../lib/types';
 import { cookies } from 'next/headers';
+import { sendWhatsAppNotification } from '../../../../lib/whatsapp';
+import { query } from '../../../../lib/mysql';
 
 export async function POST() {
   const cookieStore = await cookies();
@@ -21,8 +23,15 @@ export async function POST() {
       try {
         if (ticket.paymentIdMP) {
           const mpPayment = await getPaymentStatus(ticket.paymentIdMP);
-          if (mpPayment.status === 'approved') {
+          if (mpPayment.status === 'approved' || mpPayment.status === 'authorized') {
             await syncTicketStatus(ticket.id, TicketStatus.PAID);
+            
+            // Backup notification
+            if (ticket.whatsapp_sent === 0) {
+              await sendWhatsAppNotification(ticket);
+              await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+            }
+            
             updatedCount++;
             console.log(`[SYNC] Ticket ${ticket.id} sincronizado para PAGO via auditoria.`);
           }

@@ -12,13 +12,13 @@ async function fixDatabase() {
       database: 'jessep71_cha-com-prosa'
     });
     
-    // Adiciona a coluna paymentIdMP se ela não existir
+    // Adiciona a coluna whatsapp_sent se ela não existir
     try {
-      await connection.execute('ALTER TABLE tickets ADD COLUMN paymentIdMP VARCHAR(255) AFTER paymentMethod');
-      console.log('Column paymentIdMP added successfully!');
+      await connection.execute('ALTER TABLE tickets ADD COLUMN whatsapp_sent TINYINT DEFAULT 0 AFTER status');
+      console.log('Column whatsapp_sent added successfully!');
     } catch (err) {
       if (err.code === 'ER_DUP_COLUMN_NAME') {
-        console.log('Column paymentIdMP already exists.');
+        console.log('Column whatsapp_sent already exists.');
       } else {
         throw err;
       }

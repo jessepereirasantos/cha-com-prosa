@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { addTicket, updateTicket } from '../../../lib/db';
 import { createPixPayment, createCardPayment } from '../../../lib/mercadopago';
 import { query } from '../../../lib/mysql';
+import { sendWhatsAppNotification } from '../../../lib/whatsapp';
 
 export async function POST(req: Request) {
   try {
@@ -98,8 +99,16 @@ export async function POST(req: Request) {
       ) as any;
       console.log(`[DEBUG CREATE] UPDATE result: affectedRows=${updateResult.affectedRows}, changedRows=${updateResult.changedRows}`);
       // Verifica se realmente atualizou
-      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
+      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP, whatsapp_sent FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
       console.log(`[DEBUG CREATE] Ticket DEPOIS do update: status=${ticketAfterUpdate[0]?.status}, paymentIdMP=${ticketAfterUpdate[0]?.paymentIdMP}`);
+
+      // Fallback: Tenta enviar WhatsApp agora, mas não bloqueia
+      if (ticketAfterUpdate[0]?.whatsapp_sent === 0) {
+        sendWhatsAppNotification({ ...ticket, amount })
+          .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
+          .catch(err => console.error('[WHATSAPP fallback] Erro:', err));
+      }
+
     } else {
       console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id} (status: ${paymentStatus})`);
       const updateResult = await query(
