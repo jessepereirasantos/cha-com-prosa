@@ -45,33 +45,38 @@ export async function POST(req: Request) {
       }
 
       if (status === 'approved') {
-        // Tenta localizar o ticket vinculado a este pagamento (pelo ID do pagamento ou pela referência externa)
-        let ticket = null;
-        const rowsById = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [dataId]) as any[];
+        // Tenta localizar e atualizar o ticket vinculado a este pagamento
+        // Priorizamos a external_reference (ID do ticket) pois é o vínculo mais forte
+        console.log(`[WEBHOOK] Tentando atualizar ticket vinculado ao pagamento ${dataId}...`);
         
-        if (rowsById.length > 0) {
-          ticket = rowsById[0];
-        } else if (externalReference) {
-          console.log(`[WEBHOOK] Ticket não encontrado por paymentIdMP. Buscando por external_reference: ${externalReference}`);
-          const rowsByRef = await query('SELECT * FROM tickets WHERE id = ?', [externalReference]) as any[];
-          if (rowsByRef.length > 0) {
-            ticket = rowsByRef[0];
-            // Aproveita para vincular o ID do pagamento se estava faltando
-            await updateTicket(ticket.id, { paymentIdMP: dataId });
-          }
+        let updateResult: any = null;
+        
+        if (externalReference) {
+           console.log(`[WEBHOOK] Buscando por external_reference: ${externalReference}`);
+           updateResult = await query(
+             'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?) AND status = "pending"',
+             [dataId, externalReference]
+           );
         }
 
-        if (ticket) {
-          if (ticket.status === 'pending') {
-            // Atualiza status para pago usando SQL DIRETO para máxima precisão
-            console.log(`[WEBHOOK] Aprovando ticket ${ticket.id} via SQL Direto...`);
-            const updateResult = await query(
-              'UPDATE tickets SET status = "paid" WHERE id = ?',
-              [ticket.id]
-            );
-            console.log(`[WEBHOOK] Resultado do UPDATE:`, JSON.stringify(updateResult));
-            
-            // Dispara comunicações
+        // Se não atualizou por referência (ou não tinha referência), tenta por paymentIdMP
+        if (!updateResult || updateResult.affectedRows === 0) {
+           console.log(`[WEBHOOK] Buscando por paymentIdMP: ${dataId}`);
+           updateResult = await query(
+             'UPDATE tickets SET status = "paid" WHERE paymentIdMP = ? AND status = "pending"',
+             [dataId]
+           );
+        }
+
+        console.log(`[WEBHOOK] Resultado final da atualização:`, JSON.stringify(updateResult));
+
+        if (updateResult && updateResult.affectedRows > 0) {
+          // Busca o ticket atualizado para enviar as comunicações
+          const rows = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [dataId]) as any[];
+          const ticket = rows[0];
+          
+          if (ticket) {
+            console.log(`[WEBHOOK] Ticket ${ticket.id} ATUALIZADO com sucesso. Enviando notificações...`);
             try {
               await sendTicketEmail(ticket.email, ticket);
               if (ticket.phone) {
@@ -80,11 +85,9 @@ export async function POST(req: Request) {
             } catch (commError) {
               console.error('[WEBHOOK] Notification error:', commError);
             }
-          } else {
-            console.log(`[WEBHOOK] Ticket ${ticket.id} já estava com status: ${ticket.status}`);
           }
         } else {
-          console.warn(`[WEBHOOK] Nenhum ticket encontrado para o pagamento: ${dataId}`);
+          console.warn(`[WEBHOOK] Nenhum ticket pendente encontrado para o pagamento: ${dataId}`);
         }
       }
     }

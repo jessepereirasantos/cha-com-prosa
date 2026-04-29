@@ -77,10 +77,11 @@ export async function POST(req: Request) {
     // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
     if (paymentMethod === 'card' && paymentStatus === 'approved') {
       console.log(`[CREATE-PAYMENT] Cartão aprovado. Forçando status PAID para ticket ${ticket.id}.`);
-      await query(
-        'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
+      const updateRes = await query(
+        'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
-      );
+      ) as any;
+      console.log(`[CREATE-PAYMENT] Resultado do UPDATE (Card Approved):`, JSON.stringify(updateRes));
     } else {
       await updateTicket(ticket.id, { paymentIdMP: paymentId });
     }
