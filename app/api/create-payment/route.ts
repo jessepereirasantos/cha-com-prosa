@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { addTicket, updateTicket } from '../../../lib/db';
 import { createPixPayment, createCardPayment } from '../../../lib/mercadopago';
+import { query } from '../../../lib/mysql';
 
 export async function POST(req: Request) {
   try {
@@ -14,9 +15,9 @@ export async function POST(req: Request) {
     // 1. Calcula o valor com base no cupom
     let amount = 57;
     if (couponCode) {
-      const [couponRows] = await require('../../../lib/mysql').query('SELECT discount FROM coupons WHERE code = ?', [couponCode.toUpperCase()]) as any[];
-      if (couponRows) {
-        amount = Math.max(0, 57 - parseFloat(couponRows.discount.toString()));
+      const couponRows = await query('SELECT discount FROM coupons WHERE code = ?', [couponCode.toUpperCase()]) as any[];
+      if (couponRows && couponRows.length > 0) {
+        amount = Math.max(0, 57 - parseFloat(couponRows[0].discount.toString()));
       }
     }
 
@@ -73,16 +74,13 @@ export async function POST(req: Request) {
     console.log(`[CREATE-PAYMENT] Pagamento ${paymentId} gerado com status: ${paymentStatus} (${paymentMethod})`);
 
     // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago
-    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora usando SQL DIRETO!
-    const { query: dbQuery } = require('../../../lib/mysql');
-    
+    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
     if (paymentMethod === 'card' && paymentStatus === 'approved') {
-      console.log(`[CREATE-PAYMENT] Cartão aprovado instantaneamente. Forçando status PAID no banco para ticket ${ticket.id}.`);
-      const result = await dbQuery(
+      console.log(`[CREATE-PAYMENT] Cartão aprovado. Forçando status PAID para ticket ${ticket.id}.`);
+      await query(
         'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
         [paymentId, ticket.id]
       );
-      console.log(`[CREATE-PAYMENT] Resultado do UPDATE direto:`, JSON.stringify(result));
     } else {
       await updateTicket(ticket.id, { paymentIdMP: paymentId });
     }
