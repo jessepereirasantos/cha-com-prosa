@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getAllTickets, syncTicketStatus } from '../../../lib/db';
-import { getPaymentStatus } from '../../../lib/mercadopago';
-import { TicketStatus } from '../../../lib/types';
+import { getAllTickets, syncTicketStatus } from '../../../../lib/db';
+import { getPaymentStatus } from '../../../../lib/mercadopago';
+import { TicketStatus } from '../../../../lib/types';
 import { cookies } from 'next/headers';
 
 export async function POST() {
