@@ -71,19 +71,22 @@ export async function POST(req: Request) {
     const qrCode = mpPayment.point_of_interaction?.transaction_data?.qr_code;
     const qrCodeBase64 = mpPayment.point_of_interaction?.transaction_data?.qr_code_base64;
 
-    console.log(`[CREATE-PAYMENT] Pagamento ${paymentId} gerado com status: ${paymentStatus} (${paymentMethod})`);
+    console.log(`[DEBUG CARTAO] Pagamento gerado: ${paymentId} | Status: ${paymentStatus}`);
 
     // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.1 - Sync Fix)
     // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
     if (paymentMethod === 'card' && paymentStatus === 'approved') {
       console.log(`[CREATE-PAYMENT] Cartão aprovado. Forçando status PAID para ticket ${ticket.id}.`);
-      const updateRes = await query(
+      await query(
         'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
       ) as any;
-      console.log(`[CREATE-PAYMENT] Resultado do UPDATE (Card Approved):`, JSON.stringify(updateRes));
     } else {
-      await updateTicket(ticket.id, { paymentIdMP: paymentId });
+      console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id}`);
+      await query(
+        'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
+        [paymentId, ticket.id]
+      );
     }
 
     return NextResponse.json({

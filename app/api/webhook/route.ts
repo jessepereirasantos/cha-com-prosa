@@ -45,48 +45,42 @@ export async function POST(req: Request) {
       }
 
       if (status === 'approved') {
-        // Tenta localizar e atualizar o ticket vinculado a este pagamento
-        // Priorizamos a external_reference (ID do ticket) pois é o vínculo mais forte
-        console.log(`[WEBHOOK] Tentando atualizar ticket vinculado ao pagamento ${dataId}...`);
+        console.log(`[DEBUG CARTAO] Iniciando processamento de aprovação...`);
+        console.log(`[DEBUG CARTAO] payment_id: ${dataId}`);
+        console.log(`[DEBUG CARTAO] status: ${status}`);
+        console.log(`[DEBUG CARTAO] external_reference: ${externalReference}`);
 
-        let updateResult: any = null;
+        // UPDATE CORRETO NO BANCO COM FALLBACK
+        // Tentamos atualizar pelo paymentIdMP OU pela external_reference (que é o nosso id do ticket)
+        console.log(`[DB UPDATE] Buscando ticket por payment_id (${dataId}) ou id/reference (${externalReference})`);
+        
+        const updateResult = await query(
+          'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE paymentIdMP = ? OR LOWER(id) = LOWER(?) OR LOWER(code) = LOWER(?)',
+          [dataId, dataId, externalReference || '', externalReference || '']
+        ) as any;
 
-        if (externalReference) {
-          console.log(`[WEBHOOK] Buscando por external_reference: ${externalReference}`);
-          updateResult = await query(
-            'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?) AND status = "pending"',
-            [dataId, externalReference]
-          );
-        }
+        console.log(`[DB UPDATE] Resultado: ${updateResult.affectedRows} linhas afetadas.`);
 
-        // Se não atualizou por referência (ou não tinha referência), tenta por paymentIdMP
-        if (!updateResult || updateResult.affectedRows === 0) {
-          console.log(`[WEBHOOK] Buscando por paymentIdMP: ${dataId}`);
-          updateResult = await query(
-            'UPDATE tickets SET status = "paid" WHERE paymentIdMP = ? AND status = "pending"',
-            [dataId]
-          );
-        }
-
-        console.log(`[WEBHOOK] Resultado final da atualização:`, JSON.stringify(updateResult));
-
-        if (updateResult && updateResult.affectedRows > 0) {
+        if (updateResult.affectedRows > 0) {
           // Busca o ticket atualizado para enviar as comunicações
-          const rows = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [dataId]) as any[];
+          const rows = await query(
+            'SELECT * FROM tickets WHERE paymentIdMP = ? OR LOWER(id) = LOWER(?) OR LOWER(code) = LOWER(?)', 
+            [dataId, externalReference || '', externalReference || '']
+          ) as any[];
           const ticket = rows[0];
 
           if (ticket) {
-            console.log(`[WEBHOOK] Ticket ${ticket.id} ATUALIZADO com sucesso. Enviando notificações...`);
+            console.log(`[WEBHOOK] Sucesso! Ticket ${ticket.id} (${ticket.name}) marcado como PAGO.`);
+            // Envia comunicações (e-mail e whatsapp)
             try {
-              await sendTicketEmail(ticket.email, ticket);
-              if (ticket.phone) {
-                await sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`);
-              }
-            } catch (commError) {
-              console.error('[WEBHOOK] Notification error:', commError);
+              await Promise.all([
+                sendTicketEmail(ticket.email, ticket),
+                sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`)
+              ]);
+            } catch (err) {
+              console.error('[WEBHOOK] Erro ao enviar comunicações:', err);
             }
           }
-        } else {
           console.warn(`[WEBHOOK] Nenhum ticket pendente encontrado para o pagamento: ${dataId}`);
         }
       }
