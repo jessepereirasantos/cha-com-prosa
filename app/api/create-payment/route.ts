@@ -22,12 +22,12 @@ export async function POST(req: Request) {
     }
 
     // 1. Salva o ingresso no banco com status 'pending'
-    const ticket = await addTicket({ 
-      name, 
-      email, 
-      phone, 
-      document, 
-      paymentMethod 
+    const ticket = await addTicket({
+      name,
+      email,
+      phone,
+      document,
+      paymentMethod
     });
 
     // 2. Cria pagamento no Mercado Pago
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       if (paymentMethod === 'card') {
         const { cardToken, paymentMethodId, installments } = body;
         if (!cardToken) return NextResponse.json({ error: 'Token do cartão ausente' }, { status: 400 });
-        
+
         mpPayment = await createCardPayment({
           id: ticket.id,
           name,
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       console.error('Message:', mpError?.message);
       console.error('Cause:', JSON.stringify(mpError?.cause, null, 2));
       console.error('--- MERCADO PAGO ERROR END ---');
-      
+
       const errorMessage = mpError?.cause?.[0]?.description || mpError?.message || 'Erro ao processar pagamento no Mercado Pago';
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Create Payment Error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Erro técnico: ' + (error.message || 'Erro desconhecido'),
       details: error.code // Ex: ETIMEDOUT ou ECONNREFUSED
     }, { status: 500 });

@@ -59,11 +59,29 @@ export default function DashboardClient() {
       return;
     }
     
-    // Move the execution to the next frame to avoid synchronous setState inside effect body
     requestAnimationFrame(() => {
       fetchData();
     });
   }, [refreshTrigger, router, fetchData]);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/admin/sync-payments', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert(`${data.updatedCount} pagamentos foram sincronizados e atualizados!`);
+        setRefreshTrigger(p => p + 1);
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      alert('Erro ao sincronizar pagamentos.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleCheckIn = async (id: string) => {
     if (!confirm('DESEJA REALIZAR O CHECK-IN DESTE INGRESSO?')) return;
@@ -411,15 +429,25 @@ export default function DashboardClient() {
           {(activeTab === 'subscribers' || activeTab === 'tickets') && (
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                 <div className="relative w-full max-w-sm">
-                    <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
-                    <input 
-                      type="text"
-                      placeholder={`Buscar em ${activeTab === 'subscribers' ? 'participantes' : 'ingressos'}...`}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-white border border-rose-100 rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary/10 transition-all text-sm shadow-sm"
-                    />
+                 <div className="flex flex-1 gap-4 items-center w-full">
+                    <div className="relative w-full max-w-sm">
+                        <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
+                        <input 
+                          type="text"
+                          placeholder={`Buscar em ${activeTab === 'subscribers' ? 'participantes' : 'ingressos'}...`}
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full bg-white border border-rose-100 rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary/10 transition-all text-sm shadow-sm"
+                        />
+                    </div>
+                    <button 
+                      onClick={handleSync}
+                      disabled={isSyncing}
+                      title="Sincronizar pagamentos pendentes com Mercado Pago"
+                      className={`p-3 bg-white border border-rose-100 rounded-xl text-stone-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm ${isSyncing ? 'animate-spin cursor-not-allowed' : ''}`}
+                    >
+                      <RefreshCw className="w-5 h-5" />
+                    </button>
                  </div>
                  <div className="flex gap-2 p-1 bg-white border border-rose-100 rounded-xl shadow-sm">
                     {['all', TicketStatus.PAID, TicketStatus.PENDING, TicketStatus.USED, TicketStatus.CANCELLED].map((f) => (

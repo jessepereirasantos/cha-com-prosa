@@ -43,9 +43,9 @@ export async function getTicket(id: string): Promise<Ticket | null> {
   return rows[0] || null;
 }
 
-export async function updateTicketStatus(id: string, status: TicketStatus) {
-  await query('UPDATE tickets SET status = ? WHERE id = ?', [status, id]);
-  return getTicket(id);
+export async function syncTicketStatus(id: string, status: TicketStatus) {
+  console.log(`[DB] Syncing ticket ${id} to status: ${status}`);
+  return await query('UPDATE tickets SET status = ? WHERE id = ?', [status, id]);
 }
 
 export async function getAllTickets(): Promise<Ticket[]> {

@@ -26,7 +26,7 @@ export async function GET(req: Request) {
       // Busca o ticket pelo paymentIdMP ou pela external_reference (ID do ticket)
       let ticket = null;
       const rowsById = await query('SELECT * FROM tickets WHERE paymentIdMP = ?', [paymentId]) as any[];
-      
+
       if (rowsById.length > 0) {
         ticket = rowsById[0];
       } else if (mpPayment.external_reference) {
@@ -42,19 +42,19 @@ export async function GET(req: Request) {
 
       if (ticket && ticket.status === 'pending') {
         console.log(`[POLLING] Detectada aprovação oficial. Atualizando ticket ${ticket.id} via SQL Direto...`);
-        
+
         // Atualiza status no banco usando SQL DIRETO
         const updateResult = await query(
           'UPDATE tickets SET status = "paid" WHERE id = ?',
           [ticket.id]
         );
         console.log(`[POLLING] Resultado do UPDATE:`, JSON.stringify(updateResult));
-        
+
         // Dispara e-mail e whatsapp de forma assíncrona
         try {
           await sendTicketEmail(ticket.email, ticket);
           if (ticket.phone) {
-             await sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`);
+            await sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`);
           }
         } catch (msgErr) {
           console.error('[POLLING] Messaging error during status check:', msgErr);
@@ -62,8 +62,8 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ 
-      status: status === 'approved' ? 'approved' : 'pending' 
+    return NextResponse.json({
+      status: status === 'approved' ? 'approved' : 'pending'
     });
 
   } catch (error: any) {
