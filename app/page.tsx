@@ -435,7 +435,7 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-8 border-t border-rose-100/50">
-            <p className="font-serif text-sm italic text-stone-500">© 2024 Chá com Prosa. Um encontro de irmandade e sofisticação.</p>
+            <p className="font-serif text-sm italic text-stone-500">© 2026 Chá com Prosa. Um encontro marcado com mulheres de propósito.</p>
             <p className="text-[10px] uppercase tracking-widest text-stone-400 mt-2 font-bold">Desenvolvido com amor para mulheres que inspiram.</p>
           </div>
         </div>

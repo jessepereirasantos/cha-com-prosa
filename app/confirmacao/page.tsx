@@ -215,7 +215,7 @@ export default function ConfirmationPage() {
             
       <footer className="py-8 text-center border-t border-rose-100">
         <p className="text-stone-400 text-xs italic">
-          Chá com Prosa &copy; 2026 - Momentos que Transformam
+          © 2026 Chá com Prosa. Um encontro marcado com mulheres de propósito.
         </p>
       </footer>
     </div>
