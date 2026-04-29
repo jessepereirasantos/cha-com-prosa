@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 export default function ConfirmationPage() {
   const ticketRef = useRef<HTMLDivElement>(null);
@@ -48,46 +47,29 @@ export default function ConfirmationPage() {
     setTimeout(() => setPixData(prev => prev ? { ...prev, copied: false } : null), 3000);
   };
 
-  const downloadTicket = async () => {
-    if (!ticketRef.current) return;
+  const handleDownloadTicket = async () => {
+    const ticketElement = document.getElementById('ticket');
+    if (!ticketElement) return;
     setDownloading(true);
 
     try {
-      // Pequena pausa para garantir que o DOM está pronto
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 3, // Aumentando a qualidade para impressão
-        backgroundColor: '#FFF9FA',
-        logging: false,
-        useCORS: true, // Crucial para imagens externas
-        allowTaint: false,
-        proxy: undefined,
-        scrollX: 0,
-        scrollY: -window.scrollY, // Resolve problemas de deslocamento se a página estiver com scroll
-        onclone: (clonedDoc) => {
-          // Garante que o elemento clonado seja visível para a captura
-          const el = clonedDoc.querySelector('[ref="ticketRef"]') as HTMLElement;
-          if (el) el.style.display = 'flex';
-        }
+      const canvas = await html2canvas(ticketElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
       });
       
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width / 3, canvas.height / 3]
-      });
-
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 3, canvas.height / 3);
       
-      const fileName = `ingresso-cha-com-prosa-${participantData.name.split(' ')[0].toLowerCase()}.pdf`;
-      pdf.save(fileName);
+      const link = document.createElement('a');
+      link.download = `ingresso-cha-com-prosa-${participantData.name.split(' ')[0].toLowerCase()}.png`;
+      link.href = imgData;
+      link.click();
       
-      console.log('Ticket gerado com sucesso!');
+      console.log('Ticket baixado com sucesso!');
     } catch (error: any) {
-      console.error('Erro detalhado PDF:', error);
-      alert('Ops! Ocorreu um erro técnico ao gerar o PDF. Tente novamente ou tire um print da tela.');
+      console.error('Erro ao gerar imagem:', error);
+      alert('Ocorreu um erro ao baixar o ingresso. Tente tirar um print da tela.');
     } finally {
       setDownloading(false);
     }
@@ -132,6 +114,7 @@ export default function ConfirmationPage() {
             className="relative"
           >
             <div 
+              id="ticket"
               ref={ticketRef}
               className="bg-white rounded-[32px] overflow-hidden flex flex-col"
               style={{ 
@@ -254,12 +237,12 @@ export default function ConfirmationPage() {
 
             <div className="mt-8 space-y-4">
               <button
-                onClick={downloadTicket}
+                onClick={handleDownloadTicket}
                 disabled={downloading}
                 className="group flex items-center justify-center gap-3 w-full bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] hover:shadow-[0_8px_25px_rgba(217,139,176,0.4)] text-white rounded-2xl py-5 font-serif font-bold text-lg shadow-xl transition-all transform hover:-translate-y-1 active:scale-[0.98] disabled:opacity-70 border border-white/20"
               >
                 {downloading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />}
-                Baixar Ticket para Celular
+                Baixar Ingresso
               </button>
               
               <Link 
