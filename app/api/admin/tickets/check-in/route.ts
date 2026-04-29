@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { syncTicketStatus } from '../../../../lib/db';
-import { TicketStatus } from '../../../../lib/types';
+import { syncTicketStatus } from '../../../../../lib/db';
+import { TicketStatus } from '../../../../../lib/types';
 
 export async function POST(req: Request) {
   try {
