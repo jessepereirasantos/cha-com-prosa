@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
-import { syncTicketStatus } from '../../../lib/db';
 import { query } from '../../../lib/mysql';
 import { TicketStatus } from '../../../lib/types';
 import { sendTicketEmail } from '../../../lib/email';
-import { sendWhatsAppMessage } from '../../../lib/whatsapp';
+import { sendWhatsAppNotification } from '../../../lib/whatsapp';
 
 export async function GET(req: Request) {
   try {
@@ -71,8 +70,9 @@ export async function GET(req: Request) {
         // Dispara e-mail e whatsapp de forma assíncrona
         try {
           await sendTicketEmail(ticket.email, ticket);
-          if (ticket.phone) {
-            await sendWhatsAppMessage(ticket.phone, `Olá ${ticket.name}, seu pagamento foi aprovado! Seu código é ${ticket.code}`);
+          if (ticket.whatsapp_sent === 0) {
+            await sendWhatsAppNotification(ticket);
+            await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
           }
         } catch (msgErr) {
           console.error('[POLLING] Messaging error during status check:', msgErr);

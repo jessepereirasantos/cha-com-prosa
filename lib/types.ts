@@ -16,6 +16,7 @@ export interface Ticket {
   paymentMethod?: 'pix' | 'card';
   paymentId?: string;
   paymentIdMP?: string;
+  whatsapp_sent?: number;
   code: string; // Used for the QR code simulation
 }
 

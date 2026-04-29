@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllTickets, syncTicketStatus } from '../../../../lib/db';
+import { getAllTickets, updateTicketStatus } from '../../../../lib/db';
 import { getPaymentStatus } from '../../../../lib/mercadopago';
 import { TicketStatus } from '../../../../lib/types';
 import { cookies } from 'next/headers';
@@ -24,7 +24,7 @@ export async function POST() {
         if (ticket.paymentIdMP) {
           const mpPayment = await getPaymentStatus(ticket.paymentIdMP);
           if (mpPayment.status === 'approved' || mpPayment.status === 'authorized') {
-            await syncTicketStatus(ticket.id, TicketStatus.PAID);
+            await updateTicketStatus(ticket.id, TicketStatus.PAID);
             
             // Backup notification
             if (ticket.whatsapp_sent === 0) {
