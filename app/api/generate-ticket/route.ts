@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
     // Gerar bytes do PDF
     const pdfBytes = await pdfDoc.save();
 
-    return new Response(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="ingresso-${ticket.id}.pdf"`,
