@@ -73,13 +73,16 @@ export async function POST(req: Request) {
     console.log(`[CREATE-PAYMENT] Pagamento ${paymentId} gerado com status: ${paymentStatus} (${paymentMethod})`);
 
     // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago
-    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora!
+    // Se for cartão e já estiver aprovado, atualiza o status no banco na hora usando SQL DIRETO!
+    const { query: dbQuery } = require('../../../lib/mysql');
+    
     if (paymentMethod === 'card' && paymentStatus === 'approved') {
-      const { updateTicketStatus } = await import('../../../lib/db');
-      const { TicketStatus } = await import('../../../lib/types');
-      console.log(`[CREATE-PAYMENT] Cartão aprovado instantaneamente. Atualizando ticket ${ticket.id} para PAID.`);
-      await updateTicket(ticket.id, { paymentIdMP: paymentId });
-      await updateTicketStatus(ticket.id, TicketStatus.PAID);
+      console.log(`[CREATE-PAYMENT] Cartão aprovado instantaneamente. Forçando status PAID no banco para ticket ${ticket.id}.`);
+      const result = await dbQuery(
+        'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
+        [paymentId, ticket.id]
+      );
+      console.log(`[CREATE-PAYMENT] Resultado do UPDATE direto:`, JSON.stringify(result));
     } else {
       await updateTicket(ticket.id, { paymentIdMP: paymentId });
     }

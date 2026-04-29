@@ -63,9 +63,13 @@ export async function POST(req: Request) {
 
         if (ticket) {
           if (ticket.status === 'pending') {
-            // Atualiza status para pago
-            await updateTicketStatus(ticket.id, TicketStatus.PAID);
-            console.log(`[WEBHOOK] Ticket ${ticket.id} ATUALIZADO para PAID via Webhook.`);
+            // Atualiza status para pago usando SQL DIRETO para máxima precisão
+            console.log(`[WEBHOOK] Aprovando ticket ${ticket.id} via SQL Direto...`);
+            const updateResult = await query(
+              'UPDATE tickets SET status = "paid" WHERE id = ?',
+              [ticket.id]
+            );
+            console.log(`[WEBHOOK] Resultado do UPDATE:`, JSON.stringify(updateResult));
             
             // Dispara comunicações
             try {

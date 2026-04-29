@@ -41,10 +41,14 @@ export async function GET(req: Request) {
       }
 
       if (ticket && ticket.status === 'pending') {
-        console.log(`[POLLING] Detectada aprovação oficial. Atualizando ticket ${ticket.id}...`);
+        console.log(`[POLLING] Detectada aprovação oficial. Atualizando ticket ${ticket.id} via SQL Direto...`);
         
-        // Atualiza status no banco
-        await updateTicketStatus(ticket.id, TicketStatus.PAID);
+        // Atualiza status no banco usando SQL DIRETO
+        const updateResult = await query(
+          'UPDATE tickets SET status = "paid" WHERE id = ?',
+          [ticket.id]
+        );
+        console.log(`[POLLING] Resultado do UPDATE:`, JSON.stringify(updateResult));
         
         // Dispara e-mail e whatsapp de forma assíncrona
         try {
