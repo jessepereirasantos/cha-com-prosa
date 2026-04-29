@@ -48,33 +48,68 @@ export default function ConfirmationPage() {
   };
 
   const handleDownloadTicket = async () => {
-    const ticketElement = document.getElementById('ticket');
-    if (!ticketElement) return;
+    const originalTicket = document.getElementById('ticket');
+    if (!originalTicket) return;
     setDownloading(true);
 
-    try {
-      // Pequena espera para garantir que o DOM está estável
-      await new Promise(resolve => setTimeout(resolve, 100));
+    let clone: HTMLElement | null = null;
 
-      const canvas = await html2canvas(ticketElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        onclone: (clonedDoc) => {
-          // Remove animações do elemento clonado para não dar erro na captura
-          const animated = clonedDoc.getElementsByClassName('animate-pulse');
-          for (let i = 0; i < animated.length; i++) {
-            (animated[i] as HTMLElement).classList.remove('animate-pulse');
-          }
+    try {
+      // 1. Criar o clone do elemento
+      clone = originalTicket.cloneNode(true) as HTMLElement;
+      clone.id = 'ticket-export-clone';
+      
+      // 2. Estilizar o clone para ser invisível mas renderizável
+      // Usamos uma largura fixa baseada no original para manter a proporção
+      const originalWidth = originalTicket.offsetWidth;
+      Object.assign(clone.style, {
+        position: 'fixed',
+        left: '-9999px',
+        top: '0',
+        width: `${originalWidth}px`,
+        height: 'auto',
+        opacity: '1',
+        zIndex: '-1',
+        transform: 'none',
+        transition: 'none'
+      });
+
+      document.body.appendChild(clone);
+
+      // 3. Limpeza do Clone (Remover o que bloqueia o html2canvas)
+      // Remover filtros que o html2canvas não suporta
+      const filters = clone.querySelectorAll('.brightness-0, .invert, .filter');
+      filters.forEach(el => {
+        (el as HTMLElement).classList.remove('brightness-0', 'invert', 'filter');
+        // Garantir que o logo fique visível (cinza escuro/preto) se for o caso
+        if ((el as HTMLElement).tagName === 'IMG') {
+          (el as HTMLElement).style.filter = 'none';
         }
       });
-      
+
+      // Remover animações
+      const animated = clone.querySelectorAll('.animate-pulse');
+      animated.forEach(el => {
+        (el as HTMLElement).classList.remove('animate-pulse');
+        (el as HTMLElement).style.animation = 'none';
+      });
+
+      // Pequena pausa para o navegador processar o novo elemento no DOM
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // 4. Captura do Clone
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: originalWidth,
+        height: originalTicket.offsetHeight,
+      });
+
+      // 5. Download do PNG
       const imgData = canvas.toDataURL('image/png', 1.0);
-      
       const link = document.createElement('a');
       const firstName = participantData.name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
       link.download = `ingresso-${firstName || 'ticket'}.png`;
@@ -83,11 +118,15 @@ export default function ConfirmationPage() {
       link.click();
       document.body.removeChild(link);
       
-      console.log('Ticket baixado com sucesso!');
+      console.log('Download concluído via clone');
     } catch (error: any) {
-      console.error('Erro ao gerar imagem:', error);
-      alert('Ocorreu um erro ao gerar o arquivo do ingresso. Por favor, tente novamente ou tire um print da sua tela.');
+      console.error('Erro na exportação do ticket:', error);
+      alert('Não foi possível gerar a imagem do ingresso automaticamente. Por favor, tire um print da tela para garantir seu acesso.');
     } finally {
+      // 6. Limpeza (Remover o clone do DOM)
+      if (clone && document.body.contains(clone)) {
+        document.body.removeChild(clone);
+      }
       setDownloading(false);
     }
   };
