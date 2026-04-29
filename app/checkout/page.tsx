@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string; paymentId: string } | null>(null);
+  const [cardPaymentId, setCardPaymentId] = useState<string | null>(null);
   
   // Coupon States
   const [couponCode, setCouponCode] = useState('');
@@ -46,14 +47,15 @@ export default function CheckoutPage() {
     resolver: zodResolver(formSchema),
   });
 
-  // POLLING: Verifica status do pagamento a cada 3 segundos
+  // POLLING: Verifica status do pagamento a cada 3 segundos (PIX e Cartão)
   useEffect(() => {
     let interval: any;
+    const paymentId = pixData?.paymentId || cardPaymentId;
 
-    if (pixData?.paymentId && step === 2) {
+    if (paymentId && step === 2) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/payment-status?id=${pixData.paymentId}`);
+          const res = await fetch(`/api/payment-status?id=${paymentId}`);
           const data = await res.json();
 
           if (data.status === 'approved') {
@@ -72,7 +74,7 @@ export default function CheckoutPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [pixData, step, router]);
+  }, [pixData, cardPaymentId, step, router]);
 
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -196,11 +198,18 @@ export default function CheckoutPage() {
         });
         setStep(2);
       } else {
-        // Pagamento via cartão aprovado ou em processamento
+        // Pagamento via cartão
         localStorage.setItem('last_ticket_id', result.id);
         localStorage.setItem('last_ticket_name', data.name);
-        setStep(3);
-        setTimeout(() => router.push('/confirmacao'), 1500);
+        if (result.status === 'approved') {
+          // Aprovado imediatamente → vai para sucesso
+          setStep(3);
+          setTimeout(() => router.push('/confirmacao'), 1500);
+        } else {
+          // Em processamento (in_process) → faz polling igual ao PIX
+          setCardPaymentId(result.payment_id);
+          setStep(2);
+        }
       }
 
     } catch (error: any) {

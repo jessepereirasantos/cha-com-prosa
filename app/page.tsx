@@ -4,14 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Calendar, 
-  MapPin, 
-  HeartPulse, 
-  Coffee, 
-  Users, 
-  Gift, 
-  BookOpen, 
+import {
+  Calendar,
+  MapPin,
+  HeartPulse,
+  Coffee,
+  Users,
+  Gift,
+  BookOpen,
   UtensilsCrossed,
   CheckCircle2,
   Dices,
@@ -31,40 +31,40 @@ export default function Home() {
       <header className="fixed top-0 left-0 w-full z-50 bg-rose-50/95 backdrop-blur-sm border-b border-rose-200/50 shadow-[0_4px_20px_rgba(140,28,63,0.05)]">
         <div className="max-w-[1200px] mx-auto w-full flex justify-between items-center px-4 sm:px-6 py-2">
           <div className="flex items-center gap-2 shrink-0">
-          <Image 
-            src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
-            alt="Chá com Prosa" 
-            width={60} 
-            height={60} 
-            className="h-12 sm:h-16 w-auto"
-            referrerPolicy="no-referrer"
-          />
-          <span className="font-serif text-lg sm:text-2xl font-bold italic text-stone-700 whitespace-nowrap">Chá com Prosa</span>
-        </div>
-        
-        <nav className="hidden lg:flex gap-8 items-center">
-          <a href="#evento" className="font-serif text-base tracking-wide text-primary border-b-2 border-primary pb-1 font-semibold whitespace-nowrap">O Evento</a>
-          <a href="#palestrante" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Palestrante</a>
-          <a href="#investimento" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Investimento</a>
-          <a href="#localizacao" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Localização</a>
-        </nav>
+            <Image
+              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+              alt="Chá com Prosa"
+              width={60}
+              height={60}
+              className="h-12 sm:h-16 w-auto"
+              referrerPolicy="no-referrer"
+            />
+            <span className="font-serif text-lg sm:text-2xl font-bold italic text-stone-700 whitespace-nowrap">Chá com Prosa</span>
+          </div>
 
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/checkout" 
-            className="text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-serif font-semibold text-xs sm:text-sm transition-all hover:scale-[1.03] active:scale-95 duration-300 ease-in-out bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] shadow-md hover:shadow-[0_8px_20px_rgba(217,139,176,0.3)] border border-white/20 whitespace-nowrap"
-          >
-            <span className="hidden sm:inline">Garantir minha vaga</span>
-            <span className="sm:hidden">Reservar</span>
-          </Link>
-          
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden text-primary p-1 hover:bg-rose-100/50 rounded-lg transition-colors"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
+          <nav className="hidden lg:flex gap-8 items-center">
+            <a href="#evento" className="font-serif text-base tracking-wide text-primary border-b-2 border-primary pb-1 font-semibold whitespace-nowrap">O Evento</a>
+            <a href="#palestrante" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Palestrante</a>
+            <a href="#investimento" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Investimento</a>
+            <a href="#localizacao" className="font-serif text-base tracking-wide text-stone-600 hover:text-primary transition-colors whitespace-nowrap">Localização</a>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <Link
+              href="/checkout"
+              className="text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-serif font-semibold text-xs sm:text-sm transition-all hover:scale-[1.03] active:scale-95 duration-300 ease-in-out bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] shadow-md hover:shadow-[0_8px_20px_rgba(217,139,176,0.3)] border border-white/20 whitespace-nowrap"
+            >
+              <span className="hidden sm:inline">Garantir minha vaga</span>
+              <span className="sm:hidden">Reservar</span>
+            </Link>
+
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden text-primary p-1 hover:bg-rose-100/50 rounded-lg transition-colors"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -77,29 +77,29 @@ export default function Home() {
               className="lg:hidden bg-white border-b border-rose-100 overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-4">
-                <a 
-                  href="#evento" 
+                <a
+                  href="#evento"
                   onClick={() => setIsMenuOpen(false)}
                   className="font-serif text-lg text-stone-600 hover:text-primary py-2 px-4 rounded-xl hover:bg-rose-50 transition-all font-medium"
                 >
                   O Evento
                 </a>
-                <a 
-                  href="#palestrante" 
+                <a
+                  href="#palestrante"
                   onClick={() => setIsMenuOpen(false)}
                   className="font-serif text-lg text-stone-600 hover:text-primary py-2 px-4 rounded-xl hover:bg-rose-50 transition-all font-medium"
                 >
                   Palestrante
                 </a>
-                <a 
-                  href="#investimento" 
+                <a
+                  href="#investimento"
                   onClick={() => setIsMenuOpen(false)}
                   className="font-serif text-lg text-stone-600 hover:text-primary py-2 px-4 rounded-xl hover:bg-rose-50 transition-all font-medium"
                 >
                   Investimento
                 </a>
-                <a 
-                  href="#localizacao" 
+                <a
+                  href="#localizacao"
                   onClick={() => setIsMenuOpen(false)}
                   className="font-serif text-lg text-stone-600 hover:text-primary py-2 px-4 rounded-xl hover:bg-rose-50 transition-all font-medium"
                 >
@@ -115,7 +115,7 @@ export default function Home() {
       <section className="relative flex items-center pt-24 overflow-hidden min-h-[800px]">
         <div className="absolute inset-0 z-0 hero-gradient"></div>
         <div className="max-w-[1200px] mx-auto w-full relative z-10 grid md:grid-cols-2 items-center gap-12 px-6 py-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
@@ -132,8 +132,8 @@ export default function Home() {
               Um encontro para mulheres que buscam conhecer mais de Deus e seu propósito. O Chá com Prosa é mais que um evento, é um momento de comunhão e ajuda mútua entre mulheres.
             </p>
             <div className="flex flex-wrap gap-4 items-center">
-              <Link 
-                href="/checkout" 
+              <Link
+                href="/checkout"
                 className="text-white px-8 py-4 rounded-lg font-serif font-semibold text-lg shadow-lg transition-all duration-300 hover:scale-[1.03] bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] hover:shadow-[0_8px_20px_rgba(217,139,176,0.3)] border border-white/20"
               >
                 Garantir minha vaga
@@ -144,18 +144,18 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1 }}
             className="hidden md:flex justify-center"
           >
             <div className="relative w-full max-w-md">
-              <Image 
-                src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
-                alt="Chá com Prosa Logo" 
-                width={500} 
-                height={500} 
+              <Image
+                src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+                alt="Chá com Prosa Logo"
+                width={500}
+                height={500}
                 className="w-full h-auto drop-shadow-2xl"
                 referrerPolicy="no-referrer"
               />
@@ -165,7 +165,7 @@ export default function Home() {
       </section>
 
       {/* Info Bar */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -198,7 +198,7 @@ export default function Home() {
       </motion.section>
 
       {/* O que é o Chá com Prosa */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -230,7 +230,7 @@ export default function Home() {
       </motion.section>
 
       {/* Palestrante */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -241,11 +241,11 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="relative group">
               <div className="absolute -inset-4 border border-primary/20 rounded-xl transition-all group-hover:inset-0"></div>
-              <Image 
-                src="https://lh3.googleusercontent.com/aida/ADBb0uhcMKvexsnSmfXgWpCroWTo2FKpTJ_quo8aCReTGFBuC-YuEmgRJnBcO2UWW4qV7vzpwNnpZujvFoA1tpm4MvyhNIl4g7ZkYNVDTWAgDEPZo4UP2JvGGbKcaaF-PWCizXB_Hletw5yd3WYGgXCxQrwRty4IXtx79nHriIXJk9eKFksY56DiS_ksLMV1aqtbgsMBsknBVR3jPmqzY_rdxZu5KuWOwm2rzvYyrpl2rtB0ERmiJO0sg8HmVEP4JcN4GkLgoEWcEiRqig" 
-                alt="Erika Gomes" 
-                width={600} 
-                height={500} 
+              <Image
+                src="https://lh3.googleusercontent.com/aida/ADBb0uhcMKvexsnSmfXgWpCroWTo2FKpTJ_quo8aCReTGFBuC-YuEmgRJnBcO2UWW4qV7vzpwNnpZujvFoA1tpm4MvyhNIl4g7ZkYNVDTWAgDEPZo4UP2JvGGbKcaaF-PWCizXB_Hletw5yd3WYGgXCxQrwRty4IXtx79nHriIXJk9eKFksY56DiS_ksLMV1aqtbgsMBsknBVR3jPmqzY_rdxZu5KuWOwm2rzvYyrpl2rtB0ERmiJO0sg8HmVEP4JcN4GkLgoEWcEiRqig"
+                alt="Erika Gomes"
+                width={600}
+                height={500}
                 className="relative rounded-xl shadow-xl w-full h-[500px] object-cover"
                 referrerPolicy="no-referrer"
               />
@@ -255,9 +255,9 @@ export default function Home() {
             </div>
             <div className="space-y-6">
               <span className="text-primary text-xs font-bold uppercase tracking-widest">Nossa Convidada</span>
-              <h2 className="font-serif text-4xl font-bold text-primary">Erika Gomes<br /><span className="text-on-surface-variant font-normal italic">Psicóloga Parental</span></h2>
+              <h2 className="font-serif text-4xl font-bold text-primary">Erika Gomes<br /><span className="text-on-surface-variant font-normal italic">Terapeuta Familiar</span></h2>
               <p className="text-lg text-on-surface-variant leading-relaxed">
-                Erika Gomes é especialista em saúde mental e psicologia parental, dedicada a guiar mulheres através das complexidades da jornada feminina e familiar. Com um olhar sensível e acolhedor, ela trará reflexões profundas sobre o propósito de Deus para a mulher.
+                Erika Gomes é terapeuta familiar, dedicada a guiar mulheres através das complexidades da jornada feminina e familiar. Com um olhar sensível e acolhedor, ela trará reflexões profundas sobre o propósito de Deus para a mulher.
               </p>
               <div className="pt-6 border-t border-rose-100 flex flex-col sm:flex-row gap-6">
                 <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function Home() {
       </motion.section>
 
       {/* Mimos & Sorteios */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -283,7 +283,7 @@ export default function Home() {
         className="py-24 bg-primary text-white relative overflow-hidden min-h-[800px]"
       >
         <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
-           <Gift className="w-full text-white h-full rotate-12" />
+          <Gift className="w-full text-white h-full rotate-12" />
         </div>
         <div className="max-w-[1200px] mx-auto w-full relative z-10 px-6">
           <div className="text-center mb-16">
@@ -316,7 +316,7 @@ export default function Home() {
       </motion.section>
 
       {/* Investimento */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -337,8 +337,8 @@ export default function Home() {
             <p className="text-on-surface-variant text-base mb-10 leading-relaxed">
               Incluso: Palestra, Coffee Break completo, Kit de Boas-Vindas e participação em todos os sorteios.
             </p>
-            <Link 
-              href="/checkout" 
+            <Link
+              href="/checkout"
               className="block w-full text-white py-5 rounded-lg font-serif font-bold text-lg shadow-lg transition-all duration-300 hover:scale-[1.03] bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] hover:shadow-[0_8px_20px_rgba(217,139,176,0.3)] border border-white/20"
             >
               Garantir minha vaga agora
@@ -351,7 +351,7 @@ export default function Home() {
       </motion.section>
 
       {/* Localização */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -391,16 +391,16 @@ export default function Home() {
               </div>
             </div>
             <div className="rounded-2xl overflow-hidden shadow-2xl h-[450px] border border-rose-100 relative group transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1">
-              <a 
-                href="https://www.google.com/maps/dir/?api=1&destination=Rua+Estevam+Aragoni,+77+-+Cipó+-+Embu-Guaçu" 
-                target="_blank" 
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=Rua+Estevam+Aragoni,+77+-+Cipó+-+Embu-Guaçu"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="absolute inset-0 z-10 cursor-pointer"
                 title="Clique para abrir rotas no Google Maps"
               >
                 <span className="sr-only">Abrir rotas no Google Maps</span>
               </a>
-              <iframe 
+              <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.8680196222855!2d-46.8407886246603!3d-23.858852378595874!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce34005b8716cb%3A0xc316972e382d6880!2sR.%20Estevam%20Aragoni%2C%2077%20-%20Jardim%20Cip%C3%B3%20(Cip%C3%B3-Gua%C3%A7u)%2C%20Embu-Gua%C3%A7u%20-%20SP%2C%2006900-000!5e0!3m2!1sen!2sbr!4v1715600000000!5m2!1sen!2sbr"
                 className="w-full h-full border-0 pointer-events-none"
                 allowFullScreen={true}
@@ -416,16 +416,16 @@ export default function Home() {
       <footer className="py-16 bg-stone-50 border-t border-rose-100">
         <div className="max-w-[1200px] mx-auto w-full px-6 text-center space-y-8">
           <div className="flex flex-col items-center gap-4">
-            <Image 
-              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
-              alt="Chá com Prosa" 
-              width={60} 
-              height={60} 
+            <Image
+              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+              alt="Chá com Prosa"
+              width={60}
+              height={60}
               className="h-12 w-auto"
               referrerPolicy="no-referrer"
             />
             <div className="flex gap-8">
-              <button 
+              <button
                 onClick={() => setShowTerms(true)}
                 className="text-stone-500 hover:text-primary transition-colors text-sm font-serif italic"
               >
@@ -443,28 +443,28 @@ export default function Home() {
 
       <AnimatePresence>
         {showTerms && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-6"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="bg-white border-l-8 border-[#D98BB0] rounded-[24px] p-8 md:p-12 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl relative"
             >
-              <button 
+              <button
                 onClick={() => setShowTerms(false)}
                 className="absolute top-6 right-6 text-stone-400 hover:text-primary transition-colors"
                 title="Fechar"
               >
                 <ArrowLeft className="w-6 h-6 rotate-90" />
               </button>
-              
+
               <h2 className="text-3xl font-serif text-primary font-bold mb-8 italic">Termos de Uso e Regras do Evento</h2>
-              
+
               <div className="space-y-6 text-stone-600 text-sm leading-relaxed pr-4">
                 <section>
                   <h4 className="font-bold text-primary uppercase text-xs tracking-widest mb-2 font-sans">1. Política de Ingressos e Cancelamento</h4>
@@ -493,7 +493,7 @@ export default function Home() {
               </div>
 
               <div className="mt-10">
-                <button 
+                <button
                   onClick={() => setShowTerms(false)}
                   className="w-full bg-gradient-to-br from-[#C87A9F] to-[#D98BB0] text-white rounded-xl py-4 font-bold shadow-lg hover:shadow-[0_8px_20px_rgba(217,139,176,0.3)] transition-all"
                 >
