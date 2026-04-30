@@ -67,15 +67,15 @@ export async function GET(req: Request) {
         const ticketAfter = await query('SELECT id, status, paymentIdMP FROM tickets WHERE id = ?', [ticket.id]) as any[];
         console.log(`[DEBUG POLLING] Ticket DEPOIS do update: status=${ticketAfter[0]?.status}, paymentIdMP=${ticketAfter[0]?.paymentIdMP}`);
 
-        // Dispara e-mail e whatsapp de forma assíncrona
-        try {
-          await sendTicketEmail(ticket.email, ticket);
-          if (ticket.whatsapp_sent === 0) {
-            await sendWhatsAppNotification(ticket);
-            await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-          }
-        } catch (msgErr) {
-          console.error('[POLLING] Messaging error during status check:', msgErr);
+        // Dispara e-mail e whatsapp de forma assíncrona e não-bloqueante
+        sendTicketEmail(ticket.email, ticket).catch(msgErr => {
+          console.error('[POLLING] Email error during status check:', msgErr);
+        });
+
+        if (ticket.whatsapp_sent === 0) {
+          sendWhatsAppNotification(ticket)
+            .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
+            .catch(msgErr => console.error('[POLLING] WhatsApp error during status check:', msgErr));
         }
       } else if (ticket && ticket.status !== 'pending') {
         console.log(`[DEBUG POLLING] Ticket ${ticket.id} já está com status=${ticket.status}, nada a fazer.`);
