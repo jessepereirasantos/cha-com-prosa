@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Login</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+</head>
+<body>
+  <div class="center">
+    <div class="card auth-card">
+      <div class="card-h">
+        <div>
+          <h1 class="h1">Entrar</h1>
+          <p class="p">Acesse seu painel administrativo.</p>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="row" style="gap:8px; margin-bottom:10px">
+          <button class="btn small primary" id="tabLogin" type="button">Login</button>
+          <button class="btn small" id="tabRegister" type="button">Criar conta</button>
+          <div class="spacer"></div>
+        </div>
+
+        <div class="row" style="gap:10px" id="nameRow" hidden>
+          <div style="flex:1">
+            <label class="p" style="display:block; margin:0 0 6px">Nome</label>
+            <input class="input" id="name" type="text" placeholder="Seu nome" autocomplete="name" />
+          </div>
+        </div>
+
+        <div class="row" style="gap:10px">
+          <div style="flex:1">
+            <label class="p" style="display:block; margin:0 0 6px">Email</label>
+            <input class="input" id="email" type="email" placeholder="seuemail@dominio.com" autocomplete="email" />
+          </div>
+        </div>
+        <div class="row" style="gap:10px; margin-top:10px">
+          <div style="flex:1">
+            <label class="p" style="display:block; margin:0 0 6px">Senha</label>
+            <input class="input" id="password" type="password" placeholder="********" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <div class="row" style="gap:10px; margin-top:12px">
+          <button class="btn primary" id="btnSubmit" style="flex:1">Login</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+          <a href="recuperar-senha.html" style="color: var(--muted); font-size: 0.9rem; text-decoration: none;">Esqueci minha senha</a>
+        </div>
+
+        <p class="footer-note">JWT armazenado no navegador (localStorage).</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    (function () {
+      if (localStorage.getItem('jwt_token')) {
+        const role = localStorage.getItem('user_role');
+        window.location.href = (role === 'admin') ? 'admin-dashboard.html' : 'dashboard.html';
+        return;
+      }
+
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const nameRow = document.getElementById('nameRow');
+      const nameEl = document.getElementById('name');
+
+      const btn = document.getElementById('btnSubmit');
+      const emailEl = document.getElementById('email');
+      const passEl = document.getElementById('password');
+
+      let mode = 'login';
+
+      function setMode(next) {
+        mode = next;
+        const isRegister = mode === 'register';
+        nameRow.hidden = !isRegister;
+        tabLogin.classList.toggle('primary', !isRegister);
+        tabRegister.classList.toggle('primary', isRegister);
+        btn.textContent = isRegister ? 'Criar conta' : 'Login';
+        document.querySelector('.card-h .h1').textContent = isRegister ? 'Criar conta' : 'Entrar';
+        document.querySelector('.card-h .p').textContent = isRegister ? 'Crie seu acesso ao painel.' : 'Acesse seu painel administrativo.';
+      }
+
+      tabLogin.addEventListener('click', () => setMode('login'));
+      tabRegister.addEventListener('click', () => setMode('register'));
+      setMode('login');
+
+      async function submit() {
+        const email = (emailEl.value || '').trim();
+        const password = passEl.value || '';
+        const name = (nameEl?.value || '').trim();
+
+        if (!email || !password) {
+          toast({ title: 'Atenção', message: 'Informe email e senha', type: 'warning' });
+          return;
+        }
+
+        if (mode === 'register' && !name) {
+          toast({ title: 'Atenção', message: 'Informe o nome', type: 'warning' });
+          return;
+        }
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = (mode === 'register') ? 'Criando...' : 'Entrando...';
+
+        try {
+          const path = (mode === 'register') ? '/api/auth/register' : '/api/auth/login';
+          const body = (mode === 'register') ? { name, email, password } : { email, password };
+          const data = await apiFetch(path, { method: 'POST', auth: false, body });
+          if (!data || !data.token) throw new Error('Token não retornado');
+          setToken(data.token);
+          if (data.user && data.user.role) {
+            localStorage.setItem('user_role', data.user.role);
+          }
+          toast({ title: 'OK', message: (mode === 'register') ? 'Conta criada' : 'Login realizado', type: 'success' });
+          setTimeout(() => {
+            const role = data.user?.role || 'client';
+            window.location.href = (role === 'admin') ? 'admin-dashboard.html' : 'dashboard.html';
+          }, 350);
+        } catch (e) {
+          toast({ title: 'Erro', message: e.message || 'Falha na autenticação', type: 'danger' });
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+
+      btn.addEventListener('click', submit);
+      passEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+      });
+      emailEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+      });
+    })();
+  </script>
+</body>
+</html>

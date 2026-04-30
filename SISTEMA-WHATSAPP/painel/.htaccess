@@ -1,0 +1,13 @@
+DirectoryIndex home.html index.html index.php
+
+RewriteEngine On
+
+# Página inicial
+RewriteRule ^home/?$ home.html [L,QSA]
+RewriteRule ^login/?$ index.html [L,QSA]
+
+RewriteRule ^dashboard/?$ dashboard.html [L,QSA]
+RewriteRule ^dashboard/instances/?$ instances.html [L,QSA]
+RewriteRule ^dashboard/flows/?$ flows.html [L,QSA]
+RewriteRule ^dashboard/flows/([0-9]+)/?$ flows.html?flow_id=$1 [L,QSA]
+RewriteRule ^dashboard/settings/?$ settings.html [L,QSA]

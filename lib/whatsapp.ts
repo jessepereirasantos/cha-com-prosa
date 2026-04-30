@@ -21,15 +21,16 @@ export async function sendWhatsAppNotification(ticket: any) {
   try {
     console.log(`[WHATSAPP] Enviando mensagem para: ${phoneFormatted}`);
     const response = await axios.post(
-      `${baseUrl}/api/triggers/create`,
+      `${baseUrl}/api/events/purchase`,
       {
-        instance_id: 15,
+        name: ticket.name,
         phone: phoneFormatted,
-        event: "purchase_completed",
+        product: "Ingresso Chá com Prosa",
+        value: 57.00,
         data: {
-          customer_name: ticket.name,
-          product_name: "Ingresso Chá com Prosa",
-          amount: ticket.amount || 57.00
+          ticket_id: ticket.id,
+          ticket_code: ticket.code,
+          email: ticket.email
         }
       },
       {

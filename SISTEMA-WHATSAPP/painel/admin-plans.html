@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Gerenciar Planos</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .plan-card { background: rgba(12, 18, 36, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+    .plan-card.inactive { opacity: 0.6; }
+    .plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .plan-name { font-size: 1.25rem; font-weight: 700; color: #00d4ff; }
+    .plan-price { font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .plan-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+    .plan-stat { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #0c1224; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '📋 Gerenciar Planos' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      loadPlans();
+
+      async function loadPlans() {
+        try {
+          const res = await apiFetch('/api/admin/plans');
+          const plans = res.plans || [];
+
+          let html = `
+            <div style="margin-bottom: 20px;">
+              <button class="btn primary" onclick="openCreatePlan()">+ Novo Plano</button>
+            </div>
+            <div class="plans-grid">
+          `;
+
+          plans.forEach(p => {
+            html += `
+              <div class="plan-card ${p.is_active ? '' : 'inactive'}">
+                <div class="plan-header">
+                  <span class="plan-name">${p.name}</span>
+                  <span style="font-size:0.75rem; color:rgba(255,255,255,0.5);">${p.slug}</span>
+                </div>
+                <div class="plan-price">R$ ${parseFloat(p.price_monthly).toFixed(2).replace('.', ',')}<span style="font-size:0.875rem;color:rgba(255,255,255,0.6);">/mês</span></div>
+                <div class="plan-stats">
+                  <div class="plan-stat">
+                    <div style="font-size:1.25rem;font-weight:700;">${p.max_instances}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">Instâncias</div>
+                  </div>
+                  <div class="plan-stat">
+                    <div style="font-size:1.25rem;font-weight:700;">${p.max_flows}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">Fluxos</div>
+                  </div>
+                  <div class="plan-stat">
+                    <div style="font-size:1.25rem;font-weight:700;">${p.api_events_enabled ? '✓' : '✗'}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">API Eventos</div>
+                  </div>
+                  <div class="plan-stat">
+                    <div style="font-size:1.25rem;font-weight:700;">${p.active_subscriptions || 0}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">Assinantes</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:16px;">
+                  <button class="btn small" onclick="editPlan(${p.id})">Editar</button>
+                  <button class="btn small ${p.is_active ? 'danger' : 'primary'}" onclick="togglePlan(${p.id}, ${p.is_active})">${p.is_active ? 'Desativar' : 'Ativar'}</button>
+                  ${p.active_subscriptions === 0 ? `<button class="btn small danger" onclick="deletePlan(${p.id}, '${p.name}')">Excluir</button>` : ''}
+                </div>
+              </div>
+            `;
+          });
+
+          html += '</div>';
+          content.innerHTML = html;
+
+        } catch (error) {
+          console.error('Erro:', error);
+          content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar planos. Verifique se você é admin.</p>';
+        }
+      }
+
+      window.openCreatePlan = function() {
+        showPlanModal();
+      };
+
+      window.editPlan = async function(planId) {
+        try {
+          const res = await apiFetch('/api/admin/plans');
+          const plan = res.plans.find(p => p.id === planId);
+          if (plan) showPlanModal(plan);
+        } catch (error) {
+          alert('Erro ao carregar plano');
+        }
+      };
+
+      function showPlanModal(plan = null) {
+        const isEdit = !!plan;
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="h3">${isEdit ? 'Editar Plano' : 'Novo Plano'}</h3>
+              <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form id="planForm">
+              <div class="form-group">
+                <label>Nome do Plano</label>
+                <input class="input" type="text" name="name" value="${plan?.name || ''}" required />
+              </div>
+              ${!isEdit ? `
+                <div class="form-group">
+                  <label>Slug (identificador único)</label>
+                  <input class="input" type="text" name="slug" value="${plan?.slug || ''}" required placeholder="ex: natal-2026" />
+                </div>
+              ` : ''}
+              <div class="form-group">
+                <label>Preço Mensal (R$)</label>
+                <input class="input" type="number" step="0.01" name="price_monthly" value="${plan?.price_monthly || '0'}" required />
+              </div>
+              <div class="form-group">
+                <label>Máximo de Instâncias</label>
+                <input class="input" type="number" name="max_instances" value="${plan?.max_instances || '1'}" required />
+              </div>
+              <div class="form-group">
+                <label>Máximo de Fluxos</label>
+                <input class="input" type="number" name="max_flows" value="${plan?.max_flows || '1'}" required />
+              </div>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="api_events" name="api_events_enabled" ${plan?.api_events_enabled ? 'checked' : ''} />
+                <label for="api_events">Habilitar API de Eventos</label>
+              </div>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="is_active" name="is_active" ${plan?.is_active !== false ? 'checked' : ''} />
+                <label for="is_active">Plano Ativo</label>
+              </div>
+              <button type="submit" class="btn primary">${isEdit ? 'Salvar Alterações' : 'Criar Plano'}</button>
+            </form>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        document.getElementById('planForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = {
+            name: formData.get('name'),
+            price_monthly: parseFloat(formData.get('price_monthly')),
+            max_instances: parseInt(formData.get('max_instances')),
+            max_flows: parseInt(formData.get('max_flows')),
+            api_events_enabled: formData.get('api_events_enabled') === 'on',
+            is_active: formData.get('is_active') === 'on'
+          };
+
+          if (!isEdit) {
+            data.slug = formData.get('slug');
+          }
+
+          try {
+            const url = isEdit ? `/api/admin/plans/${plan.id}` : '/api/admin/plans';
+            const method = isEdit ? 'PUT' : 'POST';
+            const res = await apiFetch(url, { method, body: JSON.stringify(data) });
+
+            if (res.success) {
+              alert(isEdit ? 'Plano atualizado!' : 'Plano criado!');
+              modal.remove();
+              loadPlans();
+            } else {
+              alert(res.error || 'Erro ao salvar plano');
+            }
+          } catch (error) {
+            alert('Erro ao salvar plano');
+          }
+        });
+      }
+
+      window.togglePlan = async function(planId, currentActive) {
+        try {
+          const res = await apiFetch(`/api/admin/plans/${planId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ is_active: !currentActive })
+          });
+
+          if (res.success) {
+            loadPlans();
+          } else {
+            alert(res.error || 'Erro ao alterar status');
+          }
+        } catch (error) {
+          alert('Erro ao alterar status');
+        }
+      };
+
+      window.deletePlan = async function(planId, planName) {
+        if (!confirm(`Tem certeza que deseja excluir o plano "${planName}"?`)) return;
+
+        try {
+          const res = await apiFetch(`/api/admin/plans/${planId}`, { method: 'DELETE' });
+
+          if (res.success) {
+            alert('Plano excluído!');
+            loadPlans();
+          } else {
+            alert(res.error || 'Erro ao excluir plano');
+          }
+        } catch (error) {
+          alert('Erro ao excluir plano');
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>

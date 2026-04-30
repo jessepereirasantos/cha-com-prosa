@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Pagamento</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <style>
+    .payment-container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .payment-header { text-align: center; margin-bottom: 32px; }
+    .payment-header h1 { font-size: 2rem; font-weight: 800; margin: 0 0 8px; background: linear-gradient(135deg, #00d4ff, #00ff88); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .payment-header p { color: var(--muted); margin: 0; }
+    .plan-summary { background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .plan-summary h3 { margin: 0 0 8px; color: #00d4ff; }
+    .plan-summary .price { font-size: 2rem; font-weight: 700; color: #fff; }
+    .plan-summary .price span { font-size: 1rem; color: var(--muted); }
+    .plan-summary .original-price { text-decoration: line-through; color: var(--muted); font-size: 1rem; margin-left: 8px; }
+    .discount-badge { background: #00ff88; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; }
+    .payment-section { background: rgba(12, 18, 36, 0.9); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .payment-section h3 { margin: 0 0 16px; color: #fff; font-size: 1.1rem; }
+    .payment-methods { display: flex; gap: 12px; margin-bottom: 20px; }
+    .payment-method { flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.02); }
+    .payment-method:hover { border-color: rgba(0, 212, 255, 0.4); }
+    .payment-method.active { border-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+    .payment-method .icon { font-size: 1.5rem; margin-bottom: 4px; }
+    .payment-method .label { font-size: 0.9rem; color: var(--muted); }
+    .payment-method.active .label { color: #fff; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .form-row > div { flex: 1; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: #fff; font-size: 1rem; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #00d4ff; }
+    .form-group input::placeholder { color: var(--muted); }
+    .card-icons { display: flex; gap: 8px; margin-top: 8px; }
+    .card-icons img { height: 24px; opacity: 0.5; }
+    .card-icons img.active { opacity: 1; }
+    #cardForm { display: none; }
+    #pixForm { display: none; }
+    #boletoForm { display: none; }
+    .pix-code { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; text-align: center; margin: 16px 0; }
+    .pix-code img { max-width: 200px; margin-bottom: 12px; }
+    .pix-code input { width: 100%; padding: 10px; font-size: 0.8rem; text-align: center; }
+    .btn-pay { width: 100%; padding: 16px; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; background: linear-gradient(135deg, #6d5efc, #8b7bff); color: #fff; transition: all 0.2s; }
+    .btn-pay:hover { filter: brightness(1.1); }
+    .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; }
+    .secure-badge { text-align: center; margin-top: 16px; color: var(--muted); font-size: 0.85rem; }
+    .secure-badge img { height: 20px; vertical-align: middle; margin-right: 6px; }
+    .error-msg { background: rgba(255, 68, 102, 0.1); border: 1px solid rgba(255, 68, 102, 0.3); color: #ff4466; padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    .success-msg { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); color: #00ff88; padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none; text-align: center; }
+    .loading { display: none; text-align: center; padding: 40px; }
+    .loading .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: #00d4ff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <div class="payment-header">
+      <h1>🔒 Pagamento Seguro</h1>
+      <p>Finalize sua assinatura</p>
+    </div>
+
+    <div id="errorMsg" class="error-msg"></div>
+    <div id="successMsg" class="success-msg"></div>
+
+    <div class="plan-summary" id="planSummary">
+      <p class="p">Carregando plano...</p>
+    </div>
+
+    <div class="payment-section">
+      <h3>💳 Forma de Pagamento</h3>
+      
+      <div class="payment-methods">
+        <div class="payment-method active" data-method="credit_card" onclick="selectMethod('credit_card')">
+          <div class="icon">💳</div>
+          <div class="label">Cartão de Crédito</div>
+        </div>
+        <div class="payment-method" data-method="pix" onclick="selectMethod('pix')">
+          <div class="icon">📱</div>
+          <div class="label">PIX</div>
+        </div>
+        <div class="payment-method" data-method="boleto" onclick="selectMethod('boleto')">
+          <div class="icon">📄</div>
+          <div class="label">Boleto</div>
+        </div>
+      </div>
+
+      <div id="cardForm">
+        <div class="form-group">
+          <label>Número do Cartão</label>
+          <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCardNumber(this)" />
+          <div class="card-icons">
+            <img src="https://www.mercadopago.com/org-img/MP3/API/logos/visa.gif" id="iconVisa" />
+            <img src="https://www.mercadopago.com/org-img/MP3/API/logos/master.gif" id="iconMaster" />
+            <img src="https://www.mercadopago.com/org-img/MP3/API/logos/amex.gif" id="iconAmex" />
+            <img src="https://www.mercadopago.com/org-img/MP3/API/logos/elo.gif" id="iconElo" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nome no Cartão</label>
+          <input type="text" id="cardName" placeholder="Como está impresso no cartão" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Validade</label>
+            <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)" />
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" id="cardCvv" placeholder="123" maxlength="4" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>CPF do Titular</label>
+          <input type="text" id="cardCpf" placeholder="000.000.000-00" maxlength="14" oninput="formatCpf(this)" />
+        </div>
+        <div class="form-group">
+          <label>Parcelas</label>
+          <select id="installments">
+            <option value="1">1x sem juros</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="pixForm">
+        <p class="p" style="text-align: center; margin-bottom: 16px;">
+          Ao clicar em pagar, você receberá um QR Code para pagamento via PIX.
+          O pagamento é confirmado instantaneamente.
+        </p>
+      </div>
+
+      <div id="boletoForm">
+        <div class="form-group">
+          <label>CPF</label>
+          <input type="text" id="boletoCpf" placeholder="000.000.000-00" maxlength="14" oninput="formatCpf(this)" />
+        </div>
+        <p class="p" style="text-align: center;">
+          O boleto será gerado e você terá até 3 dias úteis para pagar.
+        </p>
+      </div>
+
+      <button class="btn-pay" id="btnPay" onclick="processPayment()">
+        Pagar e Ativar Assinatura
+      </button>
+
+      <div class="secure-badge">
+        🔒 Pagamento processado com segurança pelo Mercado Pago
+      </div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p class="p">Processando pagamento...</p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const MP_PUBLIC_KEY = 'APP_USR-acf1a227-a03f-427b-a11a-88563671bb80';
+    let mp = null;
+    let selectedMethod = 'credit_card';
+    let planData = null;
+    let couponData = null;
+    let finalPrice = 0;
+
+    // Inicializar Mercado Pago SDK
+    try {
+      mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
+    } catch (e) {
+      console.error('Erro ao inicializar MP SDK:', e);
+    }
+
+    // Carregar dados da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const planId = urlParams.get('plan');
+    const couponCode = urlParams.get('coupon');
+
+    async function init() {
+      if (!planId) {
+        showError('Plano não especificado. Volte e selecione um plano.');
+        return;
+      }
+
+      try {
+        // Carregar plano
+        const plansRes = await apiFetch('/api/plans', { auth: false });
+        const plans = plansRes.plans || [];
+        planData = plans.find(p => p.id == planId);
+
+        if (!planData) {
+          showError('Plano não encontrado.');
+          return;
+        }
+
+        finalPrice = parseFloat(planData.price_monthly);
+
+        // Validar cupom se existir
+        if (couponCode) {
+          try {
+            const couponRes = await apiFetch(`/api/coupons/validate/${encodeURIComponent(couponCode)}`, { auth: false });
+            if (couponRes.valid) {
+              couponData = couponRes.coupon;
+              applyDiscount();
+            }
+          } catch (e) {
+            console.log('Cupom inválido:', e);
+          }
+        }
+
+        renderPlanSummary();
+        document.getElementById('cardForm').style.display = 'block';
+
+      } catch (error) {
+        showError('Erro ao carregar dados: ' + error.message);
+      }
+    }
+
+    function applyDiscount() {
+      if (!couponData) return;
+
+      const originalPrice = parseFloat(planData.price_monthly);
+
+      if (couponData.discount_type === 'percentage') {
+        finalPrice = originalPrice * (1 - couponData.discount_value / 100);
+      } else if (couponData.discount_type === 'fixed') {
+        finalPrice = Math.max(0, originalPrice - couponData.discount_value);
+      }
+    }
+
+    function renderPlanSummary() {
+      const originalPrice = parseFloat(planData.price_monthly);
+      const hasDiscount = couponData && finalPrice < originalPrice;
+
+      document.getElementById('planSummary').innerHTML = `
+        <h3>📋 ${planData.name}</h3>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+          <span class="price">R$ ${finalPrice.toFixed(2).replace('.', ',')} <span>/mês</span></span>
+          ${hasDiscount ? `<span class="original-price">R$ ${originalPrice.toFixed(2).replace('.', ',')}</span>` : ''}
+          ${hasDiscount ? `<span class="discount-badge">-${couponData.discount_type === 'percentage' ? couponData.discount_value + '%' : 'R$ ' + couponData.discount_value}</span>` : ''}
+        </div>
+        <p class="p" style="margin-top: 12px; font-size: 0.9rem;">
+          ✓ ${planData.max_instances} instância${planData.max_instances > 1 ? 's' : ''} WhatsApp &nbsp;
+          ✓ ${planData.max_flows} fluxo${planData.max_flows > 1 ? 's' : ''} &nbsp;
+          ${planData.api_events_enabled ? '✓ API de eventos' : ''}
+        </p>
+        ${couponData ? `<p class="p" style="margin-top: 8px; color: #00ff88; font-size: 0.85rem;">🎟️ Cupom aplicado: ${couponData.code}</p>` : ''}
+      `;
+    }
+
+    function selectMethod(method) {
+      selectedMethod = method;
+      
+      document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.toggle('active', el.dataset.method === method);
+      });
+
+      document.getElementById('cardForm').style.display = method === 'credit_card' ? 'block' : 'none';
+      document.getElementById('pixForm').style.display = method === 'pix' ? 'block' : 'none';
+      document.getElementById('boletoForm').style.display = method === 'boleto' ? 'block' : 'none';
+    }
+
+    function formatCardNumber(input) {
+      let value = input.value.replace(/\D/g, '');
+      value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+      input.value = value.substring(0, 19);
+    }
+
+    function formatExpiry(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+      }
+      input.value = value;
+    }
+
+    function formatCpf(input) {
+      let value = input.value.replace(/\D/g, '');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      input.value = value;
+    }
+
+    async function processPayment() {
+      const btn = document.getElementById('btnPay');
+      btn.disabled = true;
+      document.getElementById('loading').style.display = 'block';
+      hideError();
+
+      try {
+        // Verificar se está logado
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+          showError('Você precisa estar logado para continuar. Faça login ou crie uma conta.');
+          btn.disabled = false;
+          document.getElementById('loading').style.display = 'none';
+          return;
+        }
+
+        let paymentData = {
+          plan_id: planId,
+          payment_method: selectedMethod,
+          amount: finalPrice,
+          coupon_code: couponData?.code || null
+        };
+
+        if (selectedMethod === 'credit_card') {
+          const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+          const cardName = document.getElementById('cardName').value;
+          const expiry = document.getElementById('cardExpiry').value.split('/');
+          const cvv = document.getElementById('cardCvv').value;
+          const cpf = document.getElementById('cardCpf').value.replace(/\D/g, '');
+          const installments = document.getElementById('installments').value;
+
+          if (!cardNumber || !cardName || expiry.length !== 2 || !cvv || !cpf) {
+            showError('Preencha todos os dados do cartão.');
+            btn.disabled = false;
+            document.getElementById('loading').style.display = 'none';
+            return;
+          }
+
+          // Criar token do cartão via Mercado Pago
+          try {
+            const cardToken = await mp.createCardToken({
+              cardNumber: cardNumber,
+              cardholderName: cardName,
+              cardExpirationMonth: expiry[0],
+              cardExpirationYear: '20' + expiry[1],
+              securityCode: cvv,
+              identificationType: 'CPF',
+              identificationNumber: cpf
+            });
+
+            paymentData.card_token = cardToken.id;
+            paymentData.installments = parseInt(installments);
+            paymentData.payer_cpf = cpf;
+
+          } catch (tokenError) {
+            console.error('Erro ao criar token:', tokenError);
+            showError('Dados do cartão inválidos. Verifique e tente novamente.');
+            btn.disabled = false;
+            document.getElementById('loading').style.display = 'none';
+            return;
+          }
+
+        } else if (selectedMethod === 'boleto') {
+          const cpf = document.getElementById('boletoCpf').value.replace(/\D/g, '');
+          if (!cpf || cpf.length !== 11) {
+            showError('Informe um CPF válido.');
+            btn.disabled = false;
+            document.getElementById('loading').style.display = 'none';
+            return;
+          }
+          paymentData.payer_cpf = cpf;
+        }
+
+        // Enviar para o backend
+        const result = await apiFetch('/api/payments/process', {
+          method: 'POST',
+          body: paymentData
+        });
+
+        if (result.success) {
+          if (result.pix_qr_code) {
+            // Mostrar QR Code do PIX
+            showPixCode(result.pix_qr_code, result.pix_code, result.subscription_id);
+          } else if (result.boleto_url) {
+            // Redirecionar para boleto
+            showSuccess('Boleto gerado! Redirecionando...');
+            setTimeout(() => window.open(result.boleto_url, '_blank'), 1500);
+          } else {
+            // Pagamento aprovado
+            showSuccess('🎉 Pagamento aprovado! Sua assinatura foi ativada.');
+            setTimeout(() => window.location.href = 'dashboard.html', 2000);
+          }
+        } else {
+          showError(result.error || 'Erro ao processar pagamento.');
+        }
+
+      } catch (error) {
+        console.error('Erro no pagamento:', error);
+        showError(error.message || 'Erro ao processar pagamento.');
+      }
+
+      btn.disabled = false;
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    let pixPollingInterval = null;
+
+    function showPixCode(qrCodeBase64, pixCode, subscriptionId) {
+      document.getElementById('successMsg').innerHTML = `
+        <h3 style="margin: 0 0 16px;">📱 Pague com PIX</h3>
+        <img src="data:image/png;base64,${qrCodeBase64}" style="max-width: 200px; margin-bottom: 12px;" />
+        <p class="p" style="margin: 8px 0;">Ou copie o código:</p>
+        <input type="text" value="${pixCode}" readonly style="width: 100%; padding: 10px; text-align: center; font-size: 0.8rem;" onclick="this.select(); document.execCommand('copy'); alert('Código copiado!');" />
+        <p class="p" style="margin-top: 12px; font-size: 0.85rem;" id="pixStatus">⏳ Aguardando pagamento...</p>
+        <div style="margin-top: 16px;">
+          <a href="dashboard.html" class="btn primary" style="display: inline-block; padding: 12px 24px; text-decoration: none;">Ir para o Painel</a>
+        </div>
+      `;
+      document.getElementById('successMsg').style.display = 'block';
+      
+      // Iniciar polling para verificar status do pagamento
+      startPixPolling(subscriptionId);
+    }
+
+    function startPixPolling(subscriptionId) {
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutos (5 segundos x 60)
+      
+      pixPollingInterval = setInterval(async () => {
+        attempts++;
+        
+        if (attempts > maxAttempts) {
+          clearInterval(pixPollingInterval);
+          document.getElementById('pixStatus').innerHTML = '⚠️ Tempo esgotado. <a href="dashboard.html">Acesse seu painel</a> para verificar o status.';
+          return;
+        }
+        
+        try {
+          // Usar a nova rota que verifica no Mercado Pago e ativa automaticamente
+          const res = await apiFetch('/api/payments/status');
+          console.log('Status do pagamento:', res);
+          
+          if (res.status === 'active') {
+            clearInterval(pixPollingInterval);
+            document.getElementById('pixStatus').innerHTML = '✅ Pagamento confirmado! Redirecionando...';
+            document.getElementById('successMsg').style.background = 'rgba(0, 255, 136, 0.15)';
+            document.getElementById('successMsg').style.borderColor = 'rgba(0, 255, 136, 0.4)';
+            
+            setTimeout(() => {
+              window.location.href = 'dashboard.html';
+            }, 2000);
+          }
+        } catch (e) {
+          console.log('Erro ao verificar status:', e);
+        }
+      }, 5000); // Verificar a cada 5 segundos
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function hideError() {
+      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('successMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    // Inicializar
+    init();
+  </script>
+</body>
+</html>

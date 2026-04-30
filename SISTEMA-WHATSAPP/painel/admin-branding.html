@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Branding</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .branding-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .branding-form { width: 100%; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+    .form-group .hint { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .color-input-wrap { display: flex; gap: 10px; align-items: center; }
+    .color-input-wrap input[type="color"] { width: 50px; height: 40px; border: none; border-radius: 8px; cursor: pointer; background: transparent; }
+    .color-input-wrap input[type="text"] { flex: 1; }
+    .preview-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .preview-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .preview-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .preview-title { font-weight: 700; font-size: 1.1rem; }
+    .preview-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preview-nav-item { padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; border: 1px solid var(--border); }
+    .logo-preview { width: 48px; height: 48px; border-radius: 8px; object-fit: contain; background: rgba(255,255,255,0.05); }
+    .logo-upload { display: flex; align-items: center; gap: 16px; }
+    .logo-upload input[type="file"] { display: none; }
+    .logo-upload-btn { cursor: pointer; }
+    @media (max-width: 900px) { .branding-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '🎨 Branding' });
+
+      const content = document.querySelector('[data-shell-content]');
+      
+      const branding = getBranding();
+
+      content.innerHTML = `
+        <div class="branding-grid">
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Configurações de Marca</p>
+            </div>
+            <div class="card-b">
+              <div class="branding-form">
+                <div class="form-group">
+                  <label>Nome da Plataforma</label>
+                  <input class="input" type="text" id="brandName" value="${branding.name}" placeholder="Eloha Bots" />
+                  <p class="hint">Este nome aparecerá no sidebar e em toda a plataforma</p>
+                </div>
+
+                <div class="form-group">
+                  <label>Logo</label>
+                  <div class="logo-upload">
+                    <img id="logoPreview" class="logo-preview" src="${branding.logo || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>'}" alt="Logo" />
+                    <div>
+                      <label class="btn small logo-upload-btn" for="logoInput">Escolher Imagem</label>
+                      <input type="file" id="logoInput" accept="image/*" />
+                      <button class="btn small danger" id="removeLogo" style="margin-left:8px;">Remover</button>
+                    </div>
+                  </div>
+                  <p class="hint">Recomendado: 64x64px, formato PNG ou SVG</p>
+                </div>
+
+                <div class="form-group">
+                  <label>Cor Primária</label>
+                  <div class="color-input-wrap">
+                    <input type="color" id="primaryColor" value="${branding.primaryColor}" />
+                    <input class="input" type="text" id="primaryColorText" value="${branding.primaryColor}" placeholder="#6d5efc" />
+                  </div>
+                  <p class="hint">Cor principal dos botões e elementos de destaque</p>
+                </div>
+
+                <div class="form-group">
+                  <label>Cor Secundária</label>
+                  <div class="color-input-wrap">
+                    <input type="color" id="secondaryColor" value="${branding.secondaryColor}" />
+                    <input class="input" type="text" id="secondaryColorText" value="${branding.secondaryColor}" placeholder="#00d4ff" />
+                  </div>
+                  <p class="hint">Cor de acentos e gradientes</p>
+                </div>
+
+                <div style="display:flex;gap:10px;margin-top:24px;">
+                  <button class="btn primary" id="saveBranding">Salvar Configurações</button>
+                  <button class="btn" id="resetBranding">Restaurar Padrão</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Pré-visualização</p>
+            </div>
+            <div class="card-b">
+              <div class="preview-box" id="previewBox">
+                <div class="preview-header">
+                  <span class="preview-dot" id="previewDot"></span>
+                  <span class="preview-title" id="previewTitle">${branding.name}</span>
+                </div>
+                <div class="preview-nav">
+                  <span class="preview-nav-item" id="previewNavActive">Dashboard</span>
+                  <span class="preview-nav-item" style="background:rgba(255,255,255,0.05);">Clientes</span>
+                  <span class="preview-nav-item" style="background:rgba(255,255,255,0.05);">Planos</span>
+                </div>
+                <div style="margin-top:20px;">
+                  <button class="btn primary" id="previewBtn">Botão Primário</button>
+                </div>
+              </div>
+              <p class="p" style="margin-top:16px;">
+                As alterações serão aplicadas em tempo real após salvar.
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const primaryColor = document.getElementById('primaryColor');
+      const primaryColorText = document.getElementById('primaryColorText');
+      const secondaryColor = document.getElementById('secondaryColor');
+      const secondaryColorText = document.getElementById('secondaryColorText');
+      const brandName = document.getElementById('brandName');
+      const logoInput = document.getElementById('logoInput');
+      const logoPreview = document.getElementById('logoPreview');
+      const previewDot = document.getElementById('previewDot');
+      const previewTitle = document.getElementById('previewTitle');
+      const previewNavActive = document.getElementById('previewNavActive');
+      const previewBtn = document.getElementById('previewBtn');
+
+      let currentLogo = branding.logo;
+
+      function updatePreview() {
+        const primary = primaryColor.value;
+        const secondary = secondaryColor.value;
+        
+        previewDot.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+        previewNavActive.style.background = `linear-gradient(135deg, ${primary}25, ${secondary}15)`;
+        previewNavActive.style.borderColor = `${primary}50`;
+        previewBtn.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+        previewTitle.textContent = brandName.value || 'Eloha Bots';
+      }
+
+      primaryColor.addEventListener('input', () => {
+        primaryColorText.value = primaryColor.value;
+        updatePreview();
+      });
+
+      primaryColorText.addEventListener('input', () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(primaryColorText.value)) {
+          primaryColor.value = primaryColorText.value;
+          updatePreview();
+        }
+      });
+
+      secondaryColor.addEventListener('input', () => {
+        secondaryColorText.value = secondaryColor.value;
+        updatePreview();
+      });
+
+      secondaryColorText.addEventListener('input', () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(secondaryColorText.value)) {
+          secondaryColor.value = secondaryColorText.value;
+          updatePreview();
+        }
+      });
+
+      brandName.addEventListener('input', updatePreview);
+
+      logoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            currentLogo = ev.target.result;
+            logoPreview.src = currentLogo;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById('removeLogo').addEventListener('click', () => {
+        currentLogo = null;
+        logoPreview.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>';
+      });
+
+      document.getElementById('saveBranding').addEventListener('click', () => {
+        const newBranding = {
+          name: brandName.value || 'Eloha Bots',
+          logo: currentLogo,
+          primaryColor: primaryColor.value,
+          secondaryColor: secondaryColor.value
+        };
+
+        localStorage.setItem('platform_branding', JSON.stringify(newBranding));
+        applyBrandingColors(newBranding);
+        alert('Configurações salvas! Recarregue a página para ver todas as alterações.');
+      });
+
+      document.getElementById('resetBranding').addEventListener('click', () => {
+        if (confirm('Restaurar configurações padrão?')) {
+          localStorage.removeItem('platform_branding');
+          window.location.reload();
+        }
+      });
+
+      updatePreview();
+
+    })();
+  </script>
+</body>
+</html>

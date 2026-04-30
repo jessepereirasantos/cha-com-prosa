@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Clientes</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .client-table { width: 100%; border-collapse: collapse; }
+    .client-table th, .client-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .client-table th { color: #00d4ff; font-weight: 600; }
+    .client-table tr:hover { background: rgba(255,255,255,0.05); }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-active { background: #00ff88; color: #000; }
+    .badge-trial { background: #ffaa00; color: #000; }
+    .badge-none { background: rgba(255,255,255,0.2); color: #fff; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #0c1224; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-box input { flex: 1; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '👥 Clientes' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      let allClients = [];
+      loadClients();
+
+      async function loadClients() {
+        try {
+          const res = await apiFetch('/api/admin/clients');
+          allClients = res.clients || [];
+          renderClients(allClients);
+        } catch (error) {
+          console.error('Erro:', error);
+          content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar clientes. Verifique se você é admin.</p>';
+        }
+      }
+
+      function renderClients(clients) {
+        let html = `
+          <div class="search-box">
+            <input class="input" type="text" id="searchClient" placeholder="Buscar por email..." oninput="filterClients()" />
+            <button class="btn primary" onclick="openCreateClient()">+ Novo Cliente</button>
+          </div>
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Lista de Clientes (${clients.length})</p>
+            </div>
+            <div class="card-b" style="overflow-x:auto;">
+              <table class="client-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Nome</th>
+                    <th>Plano</th>
+                    <th>Status</th>
+                    <th>Instâncias</th>
+                    <th>Fluxos</th>
+                    <th>Cadastro</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (clients.length === 0) {
+          html += '<tr><td colspan="9" style="text-align:center;">Nenhum cliente encontrado</td></tr>';
+        } else {
+          clients.forEach(c => {
+            const statusClass = c.subscription_status === 'active' ? 'badge-active' : 
+                                c.subscription_status === 'trial' ? 'badge-trial' : 'badge-none';
+            const statusText = c.subscription_status || 'Sem plano';
+            const planName = c.plan_name || '-';
+            const date = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '-';
+
+            html += `
+              <tr>
+                <td>${c.id}</td>
+                <td>${c.email}</td>
+                <td>${c.name || '-'}</td>
+                <td>${planName}</td>
+                <td><span class="badge ${statusClass}">${statusText}</span></td>
+                <td>${c.instances_count || 0}</td>
+                <td>${c.flows_count || 0}</td>
+                <td>${date}</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn small" onclick="viewClient(${c.id})">Ver</button>
+                    <button class="btn small" onclick="editClient(${c.id}, '${c.email}', '${c.name || ''}')">Editar</button>
+                    <button class="btn small primary" onclick="grantPlan(${c.id}, '${c.email}')">Plano</button>
+                    <a class="btn small warning" href="admin-support.html?client_id=${c.id}">Acessar</a>
+                    <button class="btn small danger" onclick="deleteClient(${c.id}, '${c.email}')">Excluir</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        }
+
+        html += '</tbody></table></div></div>';
+        content.innerHTML = html;
+      }
+
+      window.filterClients = function() {
+        const search = document.getElementById('searchClient').value.toLowerCase();
+        const filtered = allClients.filter(c => 
+          c.email.toLowerCase().includes(search) || 
+          (c.name && c.name.toLowerCase().includes(search))
+        );
+        renderClients(filtered);
+      };
+
+      window.viewClient = async function(clientId) {
+        try {
+          const res = await apiFetch(`/api/admin/clients/${clientId}`);
+          const { client, subscriptions, instances, flows } = res;
+
+          const modal = document.createElement('div');
+          modal.className = 'modal';
+          modal.innerHTML = `
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="h3">Detalhes do Cliente #${client.id}</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+              </div>
+              <div>
+                <p class="p"><strong>Email:</strong> ${client.email}</p>
+                <p class="p"><strong>Nome:</strong> ${client.name || '-'}</p>
+                <p class="p"><strong>Tenant:</strong> ${client.tenant_name || '-'}</p>
+                <p class="p"><strong>Cadastro:</strong> ${new Date(client.created_at).toLocaleString('pt-BR')}</p>
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 16px 0;">
+                <p class="p"><strong>Instâncias:</strong> ${instances.length}</p>
+                <p class="p"><strong>Fluxos:</strong> ${flows.length}</p>
+                <p class="p"><strong>Assinaturas:</strong> ${subscriptions.length}</p>
+                ${subscriptions.length > 0 ? `
+                  <p class="p" style="margin-top:8px;"><strong>Plano atual:</strong> ${subscriptions[0].plan_name || '-'} (${subscriptions[0].status})</p>
+                ` : ''}
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        } catch (error) {
+          alert('Erro ao carregar detalhes do cliente');
+        }
+      };
+
+      window.grantPlan = async function(clientId, email) {
+        try {
+          const plansRes = await apiFetch('/api/admin/plans');
+          const plans = plansRes.plans || [];
+
+          const modal = document.createElement('div');
+          modal.className = 'modal';
+          modal.innerHTML = `
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="h3">Conceder Plano para ${email}</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+              </div>
+              <div>
+                <div style="margin-bottom:16px;">
+                  <label class="p">Plano</label>
+                  <select class="input" id="grantPlanId">
+                    ${plans.map(p => `<option value="${p.id}">${p.name} - R$ ${parseFloat(p.price_monthly).toFixed(2)}</option>`).join('')}
+                  </select>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p">Dias de acesso (deixe vazio para ilimitado)</label>
+                  <input class="input" type="number" id="grantDays" placeholder="30" />
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p">Status</label>
+                  <select class="input" id="grantStatus">
+                    <option value="active">Ativo</option>
+                    <option value="trial">Trial</option>
+                  </select>
+                </div>
+                <button class="btn primary" onclick="submitGrantPlan(${clientId})">Conceder Plano</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        } catch (error) {
+          alert('Erro ao carregar planos');
+        }
+      };
+
+      window.submitGrantPlan = async function(clientId) {
+        const planId = document.getElementById('grantPlanId').value;
+        const days = document.getElementById('grantDays').value;
+        const status = document.getElementById('grantStatus').value;
+
+        try {
+          const res = await apiFetch('/api/admin/subscriptions/grant', {
+            method: 'POST',
+            body: {
+              client_id: clientId,
+              plan_id: parseInt(planId),
+              days: days ? parseInt(days) : null,
+              status
+            }
+          });
+
+          if (res.success) {
+            alert('Plano concedido com sucesso!');
+            document.querySelector('.modal')?.remove();
+            loadClients();
+          } else {
+            alert(res.error || 'Erro ao conceder plano');
+          }
+        } catch (error) {
+          alert('Erro ao conceder plano');
+        }
+      };
+
+      window.openCreateClient = function() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="h3">Criar Novo Cliente</h3>
+              <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form id="createClientForm">
+              <div class="form-group">
+                <label>Email *</label>
+                <input class="input" type="email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label>Senha *</label>
+                <input class="input" type="password" name="password" required minlength="6" />
+              </div>
+              <div class="form-group">
+                <label>Nome</label>
+                <input class="input" type="text" name="name" />
+              </div>
+              <button type="submit" class="btn primary">Criar Cliente</button>
+            </form>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        document.getElementById('createClientForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          try {
+            const res = await apiFetch('/api/admin/clients', {
+              method: 'POST',
+              body: {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                name: formData.get('name') || null
+              }
+            });
+            if (res.success) {
+              alert('Cliente criado com sucesso!');
+              modal.remove();
+              loadClients();
+            } else {
+              alert(res.error || 'Erro ao criar cliente');
+            }
+          } catch (error) {
+            console.error('Erro:', error);
+            alert(error.message || 'Erro ao criar cliente');
+          }
+        });
+      };
+
+      window.editClient = function(clientId, email, name) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="h3">Editar Cliente</h3>
+              <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form id="editClientForm">
+              <div class="form-group">
+                <label>Email</label>
+                <input class="input" type="email" value="${email}" disabled />
+              </div>
+              <div class="form-group">
+                <label>Nome</label>
+                <input class="input" type="text" name="name" value="${name}" />
+              </div>
+              <div class="form-group">
+                <label>Nova Senha (deixe vazio para manter)</label>
+                <input class="input" type="password" name="password" minlength="6" />
+              </div>
+              <button type="submit" class="btn primary">Salvar Alterações</button>
+            </form>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        document.getElementById('editClientForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = { name: formData.get('name') };
+          if (formData.get('password')) data.password = formData.get('password');
+
+          try {
+            const res = await apiFetch(`/api/admin/clients/${clientId}`, {
+              method: 'PUT',
+              body: data
+            });
+            if (res.success) {
+              alert('Cliente atualizado!');
+              modal.remove();
+              loadClients();
+            } else {
+              alert(res.error || 'Erro ao atualizar');
+            }
+          } catch (error) {
+            alert('Erro ao atualizar cliente');
+          }
+        });
+      };
+
+      window.deleteClient = async function(clientId, email) {
+        if (!confirm(`Tem certeza que deseja EXCLUIR o cliente "${email}"?\n\nIsso irá remover todas as instâncias, fluxos e dados deste cliente!`)) return;
+
+        try {
+          const res = await apiFetch(`/api/admin/clients/${clientId}`, { method: 'DELETE' });
+          if (res.success) {
+            alert('Cliente excluído!');
+            loadClients();
+          } else {
+            alert(res.error || 'Erro ao excluir');
+          }
+        } catch (error) {
+          alert('Erro ao excluir cliente');
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Fluxos (Admin)</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .flow-table { width: 100%; border-collapse: collapse; }
+    .flow-table th, .flow-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .flow-table th { color: #00d4ff; font-weight: 600; }
+    .flow-table tr:hover { background: rgba(255,255,255,0.05); }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-active { background: #00ff88; color: #000; }
+    .badge-inactive { background: rgba(255,255,255,0.3); color: #fff; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '🔄 Todos os Fluxos' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      try {
+        const res = await apiFetch('/api/admin/flows');
+        const flows = res.flows || [];
+
+        let html = `
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Fluxos de Todos os Clientes (${flows.length})</p>
+            </div>
+            <div class="card-b" style="overflow-x:auto;">
+              <table class="flow-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cliente</th>
+                    <th>Status</th>
+                    <th>Criado em</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (flows.length === 0) {
+          html += '<tr><td colspan="5" style="text-align:center;">Nenhum fluxo</td></tr>';
+        } else {
+          flows.forEach(f => {
+            const statusClass = f.is_active ? 'badge-active' : 'badge-inactive';
+            const statusText = f.is_active ? 'Ativo' : 'Inativo';
+            const date = f.created_at ? new Date(f.created_at).toLocaleDateString('pt-BR') : '-';
+
+            html += `
+              <tr>
+                <td>${f.id}</td>
+                <td><strong>${f.name}</strong></td>
+                <td>${f.client_email || '-'}</td>
+                <td><span class="badge ${statusClass}">${statusText}</span></td>
+                <td>${date}</td>
+              </tr>
+            `;
+          });
+        }
+
+        html += '</tbody></table></div></div>';
+        content.innerHTML = html;
+
+      } catch (error) {
+        console.error('Erro:', error);
+        content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar fluxos.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

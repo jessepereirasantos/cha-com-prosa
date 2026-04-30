@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Assinaturas</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .sub-table { width: 100%; border-collapse: collapse; }
+    .sub-table th, .sub-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sub-table th { color: #00d4ff; font-weight: 600; }
+    .sub-table tr:hover { background: rgba(255,255,255,0.05); }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-active { background: #00ff88; color: #000; }
+    .badge-trial { background: #ffaa00; color: #000; }
+    .badge-cancelled { background: #ff4466; color: #fff; }
+    .badge-pending { background: rgba(255,255,255,0.3); color: #fff; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '💳 Assinaturas' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      try {
+        const res = await apiFetch('/api/admin/subscriptions');
+        const subscriptions = res.subscriptions || [];
+
+        let html = `
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Todas as Assinaturas (${subscriptions.length})</p>
+            </div>
+            <div class="card-b" style="overflow-x:auto;">
+              <table class="sub-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Plano</th>
+                    <th>Preço</th>
+                    <th>Status</th>
+                    <th>Início</th>
+                    <th>Expira</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (subscriptions.length === 0) {
+          html += '<tr><td colspan="7" style="text-align:center;">Nenhuma assinatura</td></tr>';
+        } else {
+          subscriptions.forEach(s => {
+            const statusClass = s.status === 'active' ? 'badge-active' : 
+                                s.status === 'trial' ? 'badge-trial' : 
+                                s.status === 'cancelled' ? 'badge-cancelled' : 'badge-pending';
+            const startDate = s.started_at ? new Date(s.started_at).toLocaleDateString('pt-BR') : '-';
+            const expireDate = s.expires_at ? new Date(s.expires_at).toLocaleDateString('pt-BR') : 'Sem limite';
+
+            html += `
+              <tr>
+                <td>${s.id}</td>
+                <td>${s.client_email || '-'}</td>
+                <td><strong>${s.plan_name || '-'}</strong></td>
+                <td>R$ ${parseFloat(s.price_monthly || 0).toFixed(2)}</td>
+                <td><span class="badge ${statusClass}">${s.status}</span></td>
+                <td>${startDate}</td>
+                <td>${expireDate}</td>
+              </tr>
+            `;
+          });
+        }
+
+        html += '</tbody></table></div></div>';
+        content.innerHTML = html;
+
+      } catch (error) {
+        console.error('Erro:', error);
+        content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar assinaturas.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

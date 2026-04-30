@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Pagamento Confirmado</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .success-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .success-icon {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #00ff88, #00d4ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 32px;
+      font-size: 3rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .success-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 0 16px;
+      background: linear-gradient(135deg, #00d4ff, #00ff88);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .success-message {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+    .success-details {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    .success-details h3 {
+      margin: 0 0 16px;
+      color: #00ff88;
+    }
+    .success-details p {
+      margin: 8px 0;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .success-details strong {
+      color: #fff;
+    }
+    .btn-dashboard {
+      display: inline-block;
+      padding: 16px 48px;
+      background: linear-gradient(135deg, #6d5efc, #8b7bff);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-dashboard:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+    .pending-notice {
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid rgba(255, 170, 0, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+    .pending-notice h3 {
+      margin: 0 0 8px;
+      color: #ffaa00;
+    }
+    .pending-notice p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="success-icon">✓</div>
+    
+    <h1 class="success-title" id="title">Processando...</h1>
+    <p class="success-message" id="message">Aguarde enquanto verificamos seu pagamento.</p>
+
+    <div id="details" style="display: none;">
+      <div class="success-details">
+        <h3>📋 Detalhes da Assinatura</h3>
+        <p><strong>Plano:</strong> <span id="planName">-</span></p>
+        <p><strong>Status:</strong> <span id="status">-</span></p>
+        <p><strong>Transação:</strong> <span id="transactionId">-</span></p>
+      </div>
+    </div>
+
+    <div id="pendingNotice" class="pending-notice" style="display: none;">
+      <h3>⏳ Pagamento em Processamento</h3>
+      <p>Seu pagamento está sendo processado. Você receberá uma confirmação em breve.</p>
+    </div>
+
+    <a href="dashboard.html" class="btn-dashboard">Acessar Meu Painel</a>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('collection_status') || urlParams.get('status');
+    const preapprovalId = urlParams.get('preapproval_id');
+    const paymentId = urlParams.get('payment_id') || urlParams.get('collection_id');
+
+    async function checkStatus() {
+      const titleEl = document.getElementById('title');
+      const messageEl = document.getElementById('message');
+      const detailsEl = document.getElementById('details');
+      const pendingEl = document.getElementById('pendingNotice');
+
+      if (status === 'approved' || status === 'authorized') {
+        titleEl.textContent = '🎉 Pagamento Aprovado!';
+        messageEl.textContent = 'Sua assinatura foi ativada com sucesso. Bem-vindo ao Eloha Bots!';
+        detailsEl.style.display = 'block';
+        
+        document.getElementById('status').textContent = 'Ativo';
+        document.getElementById('status').style.color = '#00ff88';
+        
+        if (paymentId) {
+          document.getElementById('transactionId').textContent = paymentId;
+        }
+
+        // Buscar detalhes da assinatura
+        try {
+          const token = localStorage.getItem('jwt_token');
+          if (token) {
+            const subRes = await apiFetch('/api/subscriptions/my');
+            if (subRes.subscription) {
+              document.getElementById('planName').textContent = subRes.subscription.plan_name;
+            }
+          }
+        } catch (e) {
+          console.log('Erro ao buscar assinatura:', e);
+        }
+
+      } else if (status === 'pending' || status === 'in_process') {
+        titleEl.textContent = '⏳ Pagamento Pendente';
+        messageEl.textContent = 'Seu pagamento está sendo processado. Assim que for confirmado, sua assinatura será ativada.';
+        pendingEl.style.display = 'block';
+
+      } else if (status === 'rejected' || status === 'cancelled') {
+        titleEl.textContent = '❌ Pagamento não Aprovado';
+        messageEl.textContent = 'Infelizmente seu pagamento não foi aprovado. Tente novamente com outro método de pagamento.';
+        titleEl.style.background = 'linear-gradient(135deg, #ff4466, #ff6688)';
+        titleEl.style.backgroundClip = 'text';
+        titleEl.style.webkitBackgroundClip = 'text';
+
+      } else {
+        // Status desconhecido ou retorno genérico
+        titleEl.textContent = '✓ Obrigado!';
+        messageEl.textContent = 'Seu processo de assinatura foi iniciado. Verifique seu painel para mais detalhes.';
+      }
+    }
+
+    checkStatus();
+  </script>
+</body>
+</html>

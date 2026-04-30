@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Instâncias (Admin)</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .inst-table { width: 100%; border-collapse: collapse; }
+    .inst-table th, .inst-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .inst-table th { color: #00d4ff; font-weight: 600; }
+    .inst-table tr:hover { background: rgba(255,255,255,0.05); }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-connected { background: #00ff88; color: #000; }
+    .badge-disconnected { background: #ff4466; color: #fff; }
+    .badge-pending { background: rgba(255,255,255,0.3); color: #fff; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '📱 Todas as Instâncias' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      try {
+        const res = await apiFetch('/api/admin/instances');
+        const instances = res.instances || [];
+
+        let html = `
+          <div class="card">
+            <div class="card-h">
+              <p class="h2">Instâncias de Todos os Clientes (${instances.length})</p>
+            </div>
+            <div class="card-b" style="overflow-x:auto;">
+              <table class="inst-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cliente</th>
+                    <th>Fluxo</th>
+                    <th>Status</th>
+                    <th>Criada em</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (instances.length === 0) {
+          html += '<tr><td colspan="6" style="text-align:center;">Nenhuma instância</td></tr>';
+        } else {
+          instances.forEach(i => {
+            const statusClass = i.status === 'connected' ? 'badge-connected' : 
+                                i.status === 'disconnected' ? 'badge-disconnected' : 'badge-pending';
+            const date = i.created_at ? new Date(i.created_at).toLocaleDateString('pt-BR') : '-';
+
+            html += `
+              <tr>
+                <td>${i.id}</td>
+                <td><strong>${i.instance_name}</strong></td>
+                <td>${i.client_email || '-'}</td>
+                <td>${i.flow_name || '<span style="color:rgba(255,255,255,0.5);">Sem fluxo</span>'}</td>
+                <td><span class="badge ${statusClass}">${i.status || 'pending'}</span></td>
+                <td>${date}</td>
+              </tr>
+            `;
+          });
+        }
+
+        html += '</tbody></table></div></div>';
+        content.innerHTML = html;
+
+      } catch (error) {
+        console.error('Erro:', error);
+        content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar instâncias.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

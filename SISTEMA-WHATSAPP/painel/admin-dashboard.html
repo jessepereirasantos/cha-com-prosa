@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Dashboard Admin</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.05)); border: 1px solid rgba(0,212,255,0.3); border-radius: 12px; padding: 20px; text-align: center; }
+    .stat-value { font-size: 2.5rem; font-weight: 800; color: #00d4ff; }
+    .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.7); margin-top: 4px; }
+    .recent-table { width: 100%; border-collapse: collapse; }
+    .recent-table th, .recent-table td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .recent-table th { color: #00d4ff; font-weight: 600; font-size: 0.875rem; }
+    .revenue-card { background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,212,255,0.05)); border: 1px solid rgba(0,255,136,0.3); }
+    .revenue-value { color: #00ff88; }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '📊 Dashboard Admin' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando estatísticas...</p>';
+
+      try {
+        const res = await apiFetch('/api/admin/stats');
+        const { stats, revenue_by_plan, recent_clients } = res;
+
+        const totalRevenue = revenue_by_plan.reduce((sum, p) => sum + (parseFloat(p.price_monthly) * p.subscribers), 0);
+
+        let html = `
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">${stats.total_clients}</div>
+              <div class="stat-label">Total de Clientes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.active_subscriptions}</div>
+              <div class="stat-label">Assinaturas Ativas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.total_instances}</div>
+              <div class="stat-label">Total de Instâncias</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.connected_instances}</div>
+              <div class="stat-label">Instâncias Conectadas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.total_flows}</div>
+              <div class="stat-label">Total de Fluxos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.total_conversations}</div>
+              <div class="stat-label">Conversas</div>
+            </div>
+            <div class="stat-card revenue-card">
+              <div class="stat-value revenue-value">R$ ${totalRevenue.toFixed(2).replace('.', ',')}</div>
+              <div class="stat-label">Receita Mensal Estimada</div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card" style="grid-column: span 6;">
+              <div class="card-h">
+                <p class="h2">💰 Receita por Plano</p>
+              </div>
+              <div class="card-b">
+                <table class="recent-table">
+                  <thead>
+                    <tr>
+                      <th>Plano</th>
+                      <th>Preço</th>
+                      <th>Assinantes</th>
+                      <th>Receita</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${revenue_by_plan.map(p => `
+                      <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td>R$ ${parseFloat(p.price_monthly).toFixed(2)}</td>
+                        <td>${p.subscribers}</td>
+                        <td style="color:#00ff88;">R$ ${(parseFloat(p.price_monthly) * p.subscribers).toFixed(2)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card" style="grid-column: span 6;">
+              <div class="card-h">
+                <p class="h2">👥 Clientes Recentes</p>
+              </div>
+              <div class="card-b">
+                <table class="recent-table">
+                  <thead>
+                    <tr>
+                      <th>Email</th>
+                      <th>Plano</th>
+                      <th>Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${recent_clients.length === 0 ? '<tr><td colspan="3">Nenhum cliente</td></tr>' : 
+                      recent_clients.map(c => `
+                        <tr>
+                          <td>${c.email}</td>
+                          <td>${c.plan_name || '<span style="color:rgba(255,255,255,0.5);">Sem plano</span>'}</td>
+                          <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+                        </tr>
+                      `).join('')
+                    }
+                  </tbody>
+                </table>
+                <div style="margin-top:16px;">
+                  <a class="btn small" href="admin-clients.html">Ver Todos os Clientes</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:20px;">
+            <div class="card" style="grid-column: span 12;">
+              <div class="card-h">
+                <p class="h2">⚡ Ações Rápidas</p>
+              </div>
+              <div class="card-b">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                  <a class="btn primary" href="admin-clients.html">👥 Gerenciar Clientes</a>
+                  <a class="btn primary" href="admin-plans.html">📋 Gerenciar Planos</a>
+                  <a class="btn primary" href="admin-coupons.html">🎟️ Gerenciar Cupons</a>
+                  <a class="btn" href="admin-subscriptions.html">💳 Ver Assinaturas</a>
+                  <a class="btn" href="admin-instances.html">📱 Ver Instâncias</a>
+                  <a class="btn" href="admin-flows.html">🔄 Ver Fluxos</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        content.innerHTML = html;
+
+      } catch (error) {
+        console.error('Erro:', error);
+        content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar estatísticas. Verifique se você é admin.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Planos e Preços</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: linear-gradient(135deg, #0a0f1c 0%, #1a1f3c 50%, #0a0f1c 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; color: #fff; }
+    
+    .hero { text-align: center; padding: 60px 20px 40px; }
+    .hero-logo { font-size: 3rem; margin-bottom: 16px; }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #00d4ff, #00ff88); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.2rem; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto; }
+    
+    .features-bar { display: flex; justify-content: center; gap: 40px; padding: 30px 20px; flex-wrap: wrap; }
+    .feature-item { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.8); }
+    .feature-item span { font-size: 1.5rem; }
+    
+    .plans-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+    
+    .plan-card { background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 32px; position: relative; transition: all 0.3s ease; }
+    .plan-card:hover { transform: translateY(-8px); border-color: rgba(0,212,255,0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .plan-card.featured { border-color: rgba(0,255,136,0.5); background: rgba(0,255,136,0.05); }
+    .plan-card.featured::before { content: '⭐ MAIS POPULAR'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #00ff88, #00d4ff); color: #000; padding: 6px 20px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    
+    .plan-icon { font-size: 3rem; margin-bottom: 16px; }
+    .plan-name { font-size: 1.8rem; font-weight: 700; color: #00d4ff; margin-bottom: 8px; }
+    .plan-desc { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-bottom: 20px; min-height: 48px; }
+    
+    .plan-price { margin-bottom: 24px; }
+    .plan-price .amount { font-size: 3rem; font-weight: 800; }
+    .plan-price .period { font-size: 1rem; color: rgba(255,255,255,0.5); }
+    .plan-price .old-price { text-decoration: line-through; color: rgba(255,255,255,0.4); font-size: 1.2rem; }
+    
+    .plan-features { list-style: none; margin-bottom: 28px; }
+    .plan-features li { padding: 10px 0; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-features .check { color: #00ff88; font-weight: bold; }
+    .plan-features .x { color: #ff4466; }
+    
+    .plan-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .plan-btn.primary { background: linear-gradient(135deg, #6d5efc, #8b7bff); color: #fff; }
+    .plan-btn.primary:hover { filter: brightness(1.15); transform: scale(1.02); }
+    .plan-btn.featured { background: linear-gradient(135deg, #00ff88, #00d4ff); color: #000; }
+    .plan-btn.featured:hover { filter: brightness(1.1); }
+    
+    .guarantee { text-align: center; padding: 50px 20px; }
+    .guarantee-box { display: inline-flex; align-items: center; gap: 16px; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); border-radius: 16px; padding: 20px 32px; }
+    .guarantee-icon { font-size: 2.5rem; }
+    .guarantee-text h3 { color: #00ff88; margin-bottom: 4px; }
+    .guarantee-text p { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    
+    .faq { max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; }
+    .faq h2 { text-align: center; font-size: 2rem; margin-bottom: 30px; color: #00d4ff; }
+    .faq-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .faq-question { padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+    .faq-question:hover { background: rgba(255,255,255,0.02); }
+    .faq-answer { padding: 0 20px 18px; color: rgba(255,255,255,0.7); display: none; }
+    .faq-item.open .faq-answer { display: block; }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    
+    .footer { text-align: center; padding: 30px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .footer p { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+    .footer a { color: #00d4ff; text-decoration: none; }
+    
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .features-bar { gap: 20px; }
+      .plan-price .amount { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-logo">🚀</div>
+    <h1>Automatize seu WhatsApp</h1>
+    <p>Crie fluxos inteligentes de atendimento, aumente suas vendas e economize tempo com automação profissional</p>
+  </div>
+
+  <div class="features-bar">
+    <div class="feature-item"><span>✅</span> Sem código necessário</div>
+    <div class="feature-item"><span>⚡</span> Configuração em minutos</div>
+    <div class="feature-item"><span>🔒</span> 100% Seguro</div>
+    <div class="feature-item"><span>💬</span> Suporte via WhatsApp</div>
+  </div>
+
+  <div class="plans-container">
+    <div class="plans-grid" id="plansGrid">
+      <!-- Planos carregados via JS -->
+      <p style="text-align:center;color:rgba(255,255,255,0.5);grid-column:1/-1;">Carregando planos...</p>
+    </div>
+  </div>
+
+  <div class="guarantee">
+    <div class="guarantee-box">
+      <div class="guarantee-icon">🛡️</div>
+      <div class="guarantee-text">
+        <h3>Garantia de 7 dias</h3>
+        <p>Se não gostar, devolvemos seu dinheiro. Sem perguntas.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq">
+    <h2>Perguntas Frequentes</h2>
+    
+    <div class="faq-item">
+      <div class="faq-question">
+        Como funciona a automação do WhatsApp?
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-answer">
+        Você conecta seu WhatsApp escaneando um QR Code, cria fluxos de atendimento no nosso editor visual e pronto! O bot responde automaticamente seus clientes 24/7.
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">
+        Preciso saber programar?
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-answer">
+        Não! Nosso editor é 100% visual. Você arrasta e solta os blocos para criar seus fluxos de atendimento sem escrever uma linha de código.
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">
+        Posso cancelar a qualquer momento?
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-answer">
+        Sim! Não há fidelidade. Você pode cancelar sua assinatura a qualquer momento diretamente no painel.
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">
+        O que é uma instância?
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-answer">
+        Uma instância é um número de WhatsApp conectado. Se você tem 2 números de WhatsApp para automatizar, precisa de 2 instâncias.
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">
+        O que é a API de Eventos?
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-answer">
+        A API de Eventos permite integrar com sistemas externos como e-commerces, CRMs e plataformas de pagamento para disparar mensagens automáticas baseadas em ações (ex: compra confirmada, boleto gerado).
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 2026 Eloha Bots. Todos os direitos reservados.</p>
+    <p style="margin-top:8px;">Já tem conta? <a href="index.html">Faça login</a></p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const planDescriptions = {
+      'gold': {
+        icon: '🥇',
+        desc: 'Ideal para quem está começando e quer automatizar 1 número de WhatsApp',
+        features: [
+          { text: '1 instância de WhatsApp', included: true },
+          { text: '1 fluxo de automação', included: true },
+          { text: 'Editor visual de fluxos', included: true },
+          { text: 'Suporte via WhatsApp', included: true },
+          { text: 'API de Eventos', included: false }
+        ]
+      },
+      'medium': {
+        icon: '🥈',
+        desc: 'Para negócios em crescimento que precisam de mais automações',
+        features: [
+          { text: '3 instâncias de WhatsApp', included: true },
+          { text: '3 fluxos de automação', included: true },
+          { text: 'Editor visual de fluxos', included: true },
+          { text: 'Suporte prioritário', included: true },
+          { text: 'API de Eventos', included: false }
+        ]
+      },
+      'platinum': {
+        icon: '👑',
+        desc: 'Solução completa para empresas que precisam de integração total',
+        features: [
+          { text: '6 instâncias de WhatsApp', included: true },
+          { text: '6 fluxos de automação', included: true },
+          { text: 'Editor visual de fluxos', included: true },
+          { text: 'Suporte VIP prioritário', included: true },
+          { text: 'API de Eventos (integrações)', included: true }
+        ]
+      }
+    };
+
+    async function loadPlans() {
+      try {
+        const res = await apiFetch('/api/plans', { auth: false });
+        console.log('Planos recebidos:', res);
+        const plans = res.plans || [];
+
+        if (plans.length === 0) {
+          document.getElementById('plansGrid').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);grid-column:1/-1;">Nenhum plano disponível no momento.</p>';
+          return;
+        }
+
+        const featuredIndex = plans.length > 1 ? 1 : 0;
+
+        document.getElementById('plansGrid').innerHTML = plans.map((plan, idx) => {
+          const info = planDescriptions[plan.slug] || planDescriptions['gold'];
+          const isFeatured = idx === featuredIndex;
+          
+          return `
+            <div class="plan-card ${isFeatured ? 'featured' : ''}">
+              <div class="plan-icon">${info.icon}</div>
+              <h2 class="plan-name">${plan.name}</h2>
+              <p class="plan-desc">${info.desc}</p>
+              
+              <div class="plan-price">
+                <span class="amount">R$ ${parseFloat(plan.price_monthly).toFixed(2).replace('.', ',')}</span>
+                <span class="period">/mês</span>
+              </div>
+              
+              <ul class="plan-features">
+                ${info.features.map(f => `
+                  <li>
+                    <span class="${f.included ? 'check' : 'x'}">${f.included ? '✓' : '✗'}</span>
+                    ${f.text}
+                  </li>
+                `).join('')}
+              </ul>
+              
+              <button class="plan-btn ${isFeatured ? 'featured' : 'primary'}" onclick="selectPlan(${plan.id})">
+                Assinar ${plan.name}
+              </button>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        document.getElementById('plansGrid').innerHTML = '<p style="text-align:center;color:#ff4466;grid-column:1/-1;">Erro ao carregar planos. Tente novamente.</p>';
+      }
+    }
+
+    function selectPlan(planId) {
+      window.location.href = `checkout.html?plan=${planId}`;
+    }
+
+    // FAQ toggle
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.addEventListener('click', () => {
+        q.parentElement.classList.toggle('open');
+      });
+    });
+
+    loadPlans();
+  </script>
+</body>
+</html>

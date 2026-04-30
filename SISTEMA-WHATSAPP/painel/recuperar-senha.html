@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Recuperar Senha</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305c" />
+  <style>
+    .recover-container {
+      max-width: 420px;
+      margin: 80px auto;
+      padding: 20px;
+    }
+    .recover-card {
+      background: rgba(12, 18, 36, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .recover-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .recover-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, #00d4ff, #00ff88);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .recover-header p {
+      color: var(--muted);
+      margin: 0;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-size: 1rem;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #00d4ff;
+    }
+    .btn-recover {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6d5efc, #8b7bff);
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .btn-recover:hover {
+      filter: brightness(1.1);
+    }
+    .btn-recover:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .success-msg {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: #00ff88;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .error-msg {
+      background: rgba(255, 68, 102, 0.1);
+      border: 1px solid rgba(255, 68, 102, 0.3);
+      color: #ff4466;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .back-link:hover {
+      color: #00d4ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="recover-container">
+    <div class="recover-card">
+      <div class="recover-header">
+        <h1>🔑 Recuperar Senha</h1>
+        <p>Informe seu email para receber instruções</p>
+      </div>
+
+      <div id="errorMsg" class="error-msg"></div>
+      <div id="successMsg" class="success-msg" style="display: none;"></div>
+
+      <form id="recoverForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="inputEmail" placeholder="seu@email.com" required />
+        </div>
+
+        <button type="submit" class="btn-recover" id="btnRecover">
+          Enviar Link de Recuperação
+        </button>
+      </form>
+
+      <a href="login.html" class="back-link">← Voltar para o Login</a>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById('recoverForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('inputEmail').value.trim();
+      const btn = document.getElementById('btnRecover');
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+
+      if (!email) {
+        errorMsg.textContent = 'Informe seu email';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      errorMsg.style.display = 'none';
+
+      try {
+        await apiFetch('/api/auth/recover-password', {
+          method: 'POST',
+          body: { email },
+          auth: false
+        });
+
+        successMsg.innerHTML = `
+          <p style="margin: 0 0 8px; font-weight: 600;">📧 Email enviado!</p>
+          <p style="margin: 0; font-size: 0.9rem;">Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.</p>
+        `;
+        successMsg.style.display = 'block';
+        document.getElementById('recoverForm').style.display = 'none';
+
+      } catch (error) {
+        // Mesmo se o email não existir, mostramos mensagem de sucesso por segurança
+        successMsg.innerHTML = `
+          <p style="margin: 0 0 8px; font-weight: 600;">📧 Solicitação recebida!</p>
+          <p style="margin: 0; font-size: 0.9rem;">Se este email estiver cadastrado, você receberá as instruções em breve.</p>
+        `;
+        successMsg.style.display = 'block';
+        document.getElementById('recoverForm').style.display = 'none';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Enviar Link de Recuperação';
+    });
+  </script>
+</body>
+</html>

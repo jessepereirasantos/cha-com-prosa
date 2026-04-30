@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Analytics</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: rgba(12, 18, 36, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #00d4ff;
+      margin-bottom: 4px;
+    }
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .stat-card.success .value { color: #00ff88; }
+    .stat-card.warning .value { color: #ffaa00; }
+    .stat-card.danger .value { color: #ff4466; }
+    .chart-container {
+      background: rgba(12, 18, 36, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .source-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .source-item .count {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #00d4ff;
+    }
+    .source-item .name {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '📊 Analytics' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando métricas...</p>';
+
+      loadAnalytics(content);
+
+      async function loadAnalytics(container) {
+        try {
+          const response = await apiFetch('/api/analytics/summary');
+          
+          if (!response || !response.success) {
+            container.innerHTML = '<p class="p" style="color:#ff4466">Erro ao carregar métricas</p>';
+            return;
+          }
+
+          const data = response.data;
+          
+          container.innerHTML = `
+            <div class="analytics-grid">
+              <div class="stat-card">
+                <div class="value">${data.instances.total}</div>
+                <div class="label">Instâncias</div>
+              </div>
+              <div class="stat-card">
+                <div class="value">${data.flows.total}</div>
+                <div class="label">Fluxos</div>
+              </div>
+              <div class="stat-card success">
+                <div class="value">${data.conversations.total}</div>
+                <div class="label">Total de Conversas</div>
+              </div>
+              <div class="stat-card">
+                <div class="value">${data.conversations.active}</div>
+                <div class="label">Conversas Ativas</div>
+              </div>
+              <div class="stat-card success">
+                <div class="value">${data.conversations.finished}</div>
+                <div class="label">Finalizadas</div>
+              </div>
+              <div class="stat-card danger">
+                <div class="value">${data.conversations.abandoned}</div>
+                <div class="label">Abandonadas</div>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <div class="chart-title">Conversas por Origem</div>
+              <div class="source-grid">
+                <div class="source-item">
+                  <div class="count">${data.conversations.bySource.flow || 0}</div>
+                  <div class="name">Fluxo</div>
+                </div>
+                <div class="source-item">
+                  <div class="count">${data.conversations.bySource.api_event || 0}</div>
+                  <div class="name">API Evento</div>
+                </div>
+                <div class="source-item">
+                  <div class="count">${data.conversations.bySource.keyword || 0}</div>
+                  <div class="name">Palavra-chave</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <div class="chart-title">Atividade dos Últimos 30 Dias</div>
+              <canvas id="activityChart" height="100"></canvas>
+            </div>
+          `;
+
+          if (data.recentActivity && data.recentActivity.length > 0) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: data.recentActivity.map(d => {
+                  const date = new Date(d.date);
+                  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                }),
+                datasets: [{
+                  label: 'Conversas',
+                  data: data.recentActivity.map(d => d.count),
+                  borderColor: '#00d4ff',
+                  backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                  fill: true,
+                  tension: 0.4
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { color: 'rgba(255,255,255,0.6)' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                  },
+                  x: {
+                    ticks: { color: 'rgba(255,255,255,0.6)' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                  }
+                }
+              }
+            });
+          }
+
+        } catch (error) {
+          console.error('Erro ao carregar analytics:', error);
+          container.innerHTML = '<p class="p" style="color:#ff4466">Erro ao carregar métricas</p>';
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

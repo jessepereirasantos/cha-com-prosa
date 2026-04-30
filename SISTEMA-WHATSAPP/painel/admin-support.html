@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Modo Suporte</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .support-header { background: linear-gradient(135deg, rgba(255,176,32,0.15), rgba(255,77,109,0.1)); border: 1px solid rgba(255,176,32,0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+    .support-badge { background: linear-gradient(135deg, #ffb020, #ff4d6d); color: #000; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+    .client-info { flex: 1; }
+    .client-info h3 { margin: 0 0 4px; font-size: 1.1rem; }
+    .client-info p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .tab { padding: 10px 16px; border-radius: 8px 8px 0 0; cursor: pointer; color: var(--muted); border: 1px solid transparent; border-bottom: none; }
+    .tab.active { background: rgba(109,94,252,0.15); border-color: rgba(109,94,252,0.3); color: var(--text); }
+    .tab:hover:not(.active) { background: rgba(255,255,255,0.05); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .instance-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .instance-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .instance-name { font-weight: 600; font-size: 1rem; }
+    .instance-stats { display: flex; gap: 16px; color: var(--muted); font-size: 0.85rem; }
+    .flow-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .privacy-notice { background: rgba(43,213,118,0.1); border: 1px solid rgba(43,213,118,0.3); border-radius: 8px; padding: 12px 16px; margin-top: 20px; display: flex; align-items: center; gap: 12px; }
+    .privacy-notice .icon { font-size: 1.5rem; }
+    .privacy-notice p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '🛠️ Modo Suporte' });
+
+      const content = document.querySelector('[data-shell-content]');
+      
+      const params = new URLSearchParams(window.location.search);
+      const clientId = params.get('client_id');
+
+      if (!clientId) {
+        content.innerHTML = `
+          <div class="card">
+            <div class="card-b">
+              <p class="p">Selecione um cliente na página de <a href="admin-clients.html">Clientes</a> para acessar o modo suporte.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = '<p class="p">Carregando dados do cliente...</p>';
+
+      try {
+        const res = await apiFetch(`/api/admin/clients/${clientId}`);
+        const { client, subscriptions, instances, flows } = res;
+
+        const activeSub = subscriptions.find(s => s.status === 'active');
+
+        content.innerHTML = `
+          <div class="support-header">
+            <span class="support-badge">🛠️ MODO SUPORTE</span>
+            <div class="client-info">
+              <h3>${client.email}</h3>
+              <p>ID: ${client.id} | Plano: ${activeSub ? activeSub.plan_name : 'Sem plano'} | Tenant: ${client.tenant_id}</p>
+            </div>
+            <a class="btn small" href="admin-clients.html">← Voltar</a>
+          </div>
+
+          <div class="tabs">
+            <div class="tab active" data-tab="instances">📱 Instâncias (${instances.length})</div>
+            <div class="tab" data-tab="flows">🔄 Fluxos (${flows.length})</div>
+            <div class="tab" data-tab="metrics">📊 Métricas</div>
+          </div>
+
+          <div class="tab-content active" id="tab-instances">
+            <div style="margin-bottom: 16px;">
+              <button class="btn primary" onclick="createInstanceForClient(${client.tenant_id}, ${clientId})">+ Criar Instância</button>
+            </div>
+            ${instances.length === 0 ? '<p class="p">Nenhuma instância criada.</p>' : instances.map(inst => `
+              <div class="instance-card">
+                <div class="instance-header">
+                  <div>
+                    <span class="instance-name">${inst.instance_name}</span>
+                    <span class="badge ${inst.status === 'connected' ? 'connected' : inst.status === 'connecting' ? 'connecting' : 'disconnected'}">
+                      <span class="b"></span> ${inst.status || 'pending'}
+                    </span>
+                  </div>
+                  <div>
+                    <button class="btn small" onclick="viewInstanceDetails(${inst.id})">Ver Detalhes</button>
+                  </div>
+                </div>
+                <div class="instance-stats">
+                  <span>📅 Criada: ${new Date(inst.created_at).toLocaleDateString('pt-BR')}</span>
+                  <span>🔄 Fluxo: ${inst.flow_id ? flows.find(f => f.id === inst.flow_id)?.name || 'ID ' + inst.flow_id : 'Nenhum'}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="tab-content" id="tab-flows">
+            <div style="margin-bottom: 16px;">
+              <button class="btn primary" onclick="createFlowForClient(${client.tenant_id}, ${clientId})">+ Criar Fluxo</button>
+            </div>
+            ${flows.length === 0 ? '<p class="p">Nenhum fluxo criado.</p>' : flows.map(flow => `
+              <div class="flow-card">
+                <div class="instance-header">
+                  <div>
+                    <span class="instance-name">${flow.name}</span>
+                    <span class="badge ${flow.is_active ? 'connected' : 'disconnected'}">
+                      <span class="b"></span> ${flow.is_active ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                  <div>
+                    <button class="btn small primary" onclick="editFlowSupport(${flow.id}, ${clientId})">Editar Fluxo</button>
+                  </div>
+                </div>
+                <div class="instance-stats">
+                  <span>📅 Criado: ${new Date(flow.created_at).toLocaleDateString('pt-BR')}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="tab-content" id="tab-metrics">
+            <div class="grid">
+              <div class="card" style="grid-column: span 4;">
+                <div class="card-b" style="text-align:center;padding-top:16px;">
+                  <p style="font-size:2rem;font-weight:700;color:#00d4ff;margin:0;">${instances.length}</p>
+                  <p class="p">Instâncias</p>
+                </div>
+              </div>
+              <div class="card" style="grid-column: span 4;">
+                <div class="card-b" style="text-align:center;padding-top:16px;">
+                  <p style="font-size:2rem;font-weight:700;color:#00d4ff;margin:0;">${flows.length}</p>
+                  <p class="p">Fluxos</p>
+                </div>
+              </div>
+              <div class="card" style="grid-column: span 4;">
+                <div class="card-b" style="text-align:center;padding-top:16px;">
+                  <p style="font-size:2rem;font-weight:700;color:#00d4ff;margin:0;">${instances.filter(i => i.status === 'connected').length}</p>
+                  <p class="p">Conectadas</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="privacy-notice">
+            <span class="icon">🔒</span>
+            <div>
+              <p><strong>Privacidade Protegida:</strong> O conteúdo das conversas do cliente não está disponível no modo suporte. Você pode visualizar métricas e configurações, mas não as mensagens trocadas.</p>
+            </div>
+          </div>
+        `;
+
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+          });
+        });
+
+      } catch (error) {
+        console.error('Erro:', error);
+        content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar dados do cliente.</p>';
+      }
+
+      window.viewInstanceDetails = async function(instanceId) {
+        try {
+          const res = await apiFetch('/api/admin/instances');
+          const instances = res.instances || [];
+          const instance = instances.find(i => i.id === instanceId);
+          
+          if (!instance) {
+            alert('Instância não encontrada');
+            return;
+          }
+
+          const modal = document.createElement('div');
+          modal.className = 'modal open';
+          modal.innerHTML = `
+            <div class="box" style="max-width:500px;">
+              <div class="box-h">
+                <h2 class="h2">📱 Detalhes da Instância</h2>
+                <button class="btn small" onclick="this.closest('.modal').remove()">×</button>
+              </div>
+              <div class="box-b">
+                <div style="margin-bottom:16px;">
+                  <label class="p" style="color:var(--muted);">Nome</label>
+                  <p style="font-size:1.1rem;font-weight:600;margin:4px 0;">${instance.instance_name}</p>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p" style="color:var(--muted);">Status</label>
+                  <p style="margin:4px 0;">
+                    <span class="badge ${instance.status === 'connected' ? 'success' : instance.status === 'connecting' ? 'warning' : 'danger'}">
+                      ${instance.status || 'pending'}
+                    </span>
+                  </p>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p" style="color:var(--muted);">Telefone</label>
+                  <p style="margin:4px 0;">${instance.phone_number || 'Não conectado'}</p>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p" style="color:var(--muted);">Fluxo Ativo</label>
+                  <p style="margin:4px 0;">${instance.flow_name || 'Nenhum'}</p>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="p" style="color:var(--muted);">Criado em</label>
+                  <p style="margin:4px 0;">${instance.created_at ? new Date(instance.created_at).toLocaleString('pt-BR') : '-'}</p>
+                </div>
+                <div style="background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-radius:8px;padding:12px;margin-top:16px;">
+                  <p style="margin:0;font-size:0.9rem;color:#ffaa00;">
+                    ⚠️ <strong>Modo Suporte:</strong> Você pode visualizar configurações, mas não pode modificar a instância do cliente.
+                  </p>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } catch (error) {
+          alert('Erro ao carregar detalhes: ' + error.message);
+        }
+      };
+
+      window.editFlowSupport = function(flowId, clientId) {
+        alert('Para editar o fluxo do cliente, acesse a página de Fluxos no menu lateral e use o ID: ' + flowId + '\n\nO modo suporte permite apenas visualização. Para edições, o cliente deve fazer pelo próprio painel.');
+      };
+
+      window.createInstanceForClient = async function(tenantId, clientId) {
+        const name = prompt('Nome da instância:');
+        if (!name) return;
+
+        try {
+          const res = await apiFetch('/api/admin/support/instance', {
+            method: 'POST',
+            body: { tenant_id: tenantId, client_id: clientId, instance_name: name }
+          });
+          if (res.success) {
+            alert('Instância criada com sucesso!');
+            location.reload();
+          } else {
+            alert(res.error || 'Erro ao criar instância');
+          }
+        } catch (error) {
+          alert(error.message || 'Erro ao criar instância');
+        }
+      };
+
+      window.createFlowForClient = async function(tenantId, clientId) {
+        const name = prompt('Nome do fluxo:');
+        if (!name) return;
+
+        try {
+          const res = await apiFetch('/api/admin/support/flow', {
+            method: 'POST',
+            body: { tenant_id: tenantId, client_id: clientId, name: name }
+          });
+          if (res.success) {
+            alert('Fluxo criado com sucesso!');
+            location.reload();
+          } else {
+            alert(res.error || 'Erro ao criar fluxo');
+          }
+        } catch (error) {
+          alert(error.message || 'Erro ao criar fluxo');
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>

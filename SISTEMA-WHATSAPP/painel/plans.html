@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Planos</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .plan-card {
+      background: rgba(12, 18, 36, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .plan-card:hover {
+      border-color: #00d4ff;
+      transform: translateY(-4px);
+    }
+    .plan-card.featured {
+      border-color: #00d4ff;
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(12, 18, 36, 0.9));
+    }
+    .plan-card .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .plan-card .plan-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #00d4ff;
+      margin: 16px 0;
+    }
+    .plan-card .plan-price span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .plan-card .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      text-align: left;
+    }
+    .plan-card .plan-features li {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .plan-card .plan-features li:last-child {
+      border-bottom: none;
+    }
+    .plan-card .plan-features li::before {
+      content: "✓ ";
+      color: #00ff88;
+      font-weight: bold;
+    }
+    .plan-card .plan-features li.disabled::before {
+      content: "✗ ";
+      color: #ff4466;
+    }
+    .plan-card .plan-features li.disabled {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .current-plan {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid #00d4ff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .current-plan h3 {
+      margin: 0 0 12px;
+      color: #00d4ff;
+    }
+    .usage-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      height: 8px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .usage-bar .fill {
+      background: linear-gradient(90deg, #00d4ff, #00ff88);
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.3s ease;
+    }
+    .usage-bar .fill.warning {
+      background: linear-gradient(90deg, #ffaa00, #ff4466);
+    }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: 'Planos e Assinatura' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      loadPlansPage();
+
+      async function loadPlansPage() {
+        try {
+          const [plansRes, limitsRes, subscriptionRes] = await Promise.all([
+            apiFetch('/api/plans'),
+            apiFetch('/api/plans/limits'),
+            apiFetch('/api/subscriptions/my')
+          ]);
+
+          const plans = plansRes.plans || [];
+          const limits = limitsRes;
+          const subscription = subscriptionRes.subscription;
+
+          let html = '';
+
+          if (subscription) {
+            html += `
+              <div class="current-plan">
+                <h3>📋 Seu Plano Atual: ${subscription.plan_name}</h3>
+                <div class="grid" style="gap: 16px;">
+                  <div style="grid-column: span 4;">
+                    <p class="p" style="margin: 0 0 4px;">Instâncias</p>
+                    <div class="usage-bar">
+                      <div class="fill ${limits.instances.current >= limits.instances.max ? 'warning' : ''}" 
+                           style="width: ${(limits.instances.current / limits.instances.max) * 100}%"></div>
+                    </div>
+                    <p class="p" style="margin: 4px 0 0; font-size: 0.85rem;">${limits.instances.current} / ${limits.instances.max}</p>
+                  </div>
+                  <div style="grid-column: span 4;">
+                    <p class="p" style="margin: 0 0 4px;">Fluxos</p>
+                    <div class="usage-bar">
+                      <div class="fill ${limits.flows.current >= limits.flows.max ? 'warning' : ''}" 
+                           style="width: ${(limits.flows.current / limits.flows.max) * 100}%"></div>
+                    </div>
+                    <p class="p" style="margin: 4px 0 0; font-size: 0.85rem;">${limits.flows.current} / ${limits.flows.max}</p>
+                  </div>
+                  <div style="grid-column: span 4;">
+                    <p class="p" style="margin: 0 0 4px;">API Eventos</p>
+                    <p class="p" style="margin: 4px 0 0; color: ${limits.apiEvents.enabled ? '#00ff88' : '#ff4466'};">
+                      ${limits.apiEvents.enabled ? '✓ Habilitado' : '✗ Não disponível'}
+                    </p>
+                  </div>
+                </div>
+                <p class="p" style="margin: 16px 0 0; font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+                  Status: <strong style="color: ${subscription.status === 'active' ? '#00ff88' : '#ffaa00'}">${subscription.status}</strong>
+                  ${subscription.expires_at ? ` • Expira em: ${new Date(subscription.expires_at).toLocaleDateString('pt-BR')}` : ''}
+                </p>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="current-plan" style="border-color: #ffaa00; background: rgba(255, 170, 0, 0.1);">
+                <h3 style="color: #ffaa00;">⚠️ Você não possui um plano ativo</h3>
+                <p class="p">Escolha um plano abaixo para desbloquear todos os recursos.</p>
+              </div>
+            `;
+          }
+
+          html += '<h2 class="h2" style="margin: 24px 0 16px;">Escolha seu Plano</h2>';
+          html += '<div class="plans-grid">';
+
+          plans.forEach((plan, index) => {
+            const isCurrent = subscription && subscription.plan_slug === plan.slug;
+            const isFeatured = plan.slug === 'platinum';
+
+            html += `
+              <div class="plan-card ${isFeatured ? 'featured' : ''}">
+                ${isFeatured ? '<div style="background: #00d4ff; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">MAIS POPULAR</div>' : ''}
+                <div class="plan-name">${plan.name}</div>
+                <div class="plan-price">
+                  R$ ${parseFloat(plan.price_monthly).toFixed(2).replace('.', ',')}
+                  <span>/mês</span>
+                </div>
+                <ul class="plan-features">
+                  <li>${plan.max_instances} instância${plan.max_instances > 1 ? 's' : ''} WhatsApp</li>
+                  <li>${plan.max_flows} fluxo${plan.max_flows > 1 ? 's' : ''} de automação</li>
+                  <li class="${plan.api_events_enabled ? '' : 'disabled'}">API de eventos externos</li>
+                  <li>Suporte por email</li>
+                  <li>Analytics básico</li>
+                </ul>
+                ${isCurrent 
+                  ? '<button class="btn" disabled style="width: 100%; opacity: 0.6;">Plano Atual</button>'
+                  : `<button class="btn primary" style="width: 100%;" onclick="selectPlan(${plan.id}, '${plan.name}')">
+                      ${subscription ? 'Fazer Upgrade' : 'Assinar Agora'}
+                    </button>`
+                }
+              </div>
+            `;
+          });
+
+          html += '</div>';
+
+          if (subscription && subscription.status === 'active') {
+            html += `
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <h3 class="h3" style="color: #ff4466;">Cancelar Assinatura</h3>
+                <p class="p" style="margin: 8px 0 16px;">Ao cancelar, você perderá acesso aos recursos do seu plano ao final do período atual.</p>
+                <button class="btn danger small" onclick="cancelSubscription(${subscription.id})">Cancelar Assinatura</button>
+              </div>
+            `;
+          }
+
+          content.innerHTML = html;
+
+        } catch (error) {
+          console.error('Erro ao carregar planos:', error);
+          content.innerHTML = '<p class="p" style="color: #ff4466;">Erro ao carregar planos. Tente novamente.</p>';
+        }
+      }
+
+      window.selectPlan = async function(planId, planName) {
+        if (!confirm(`Deseja assinar o plano ${planName}?`)) return;
+
+        try {
+          const result = await apiFetch('/api/subscriptions', {
+            method: 'POST',
+            body: JSON.stringify({ plan_id: planId })
+          });
+
+          if (result.init_point) {
+            window.location.href = result.init_point;
+          } else if (result.success) {
+            alert('Assinatura criada com sucesso!');
+            window.location.reload();
+          } else {
+            alert(result.error || 'Erro ao criar assinatura');
+          }
+        } catch (error) {
+          alert(error.message || 'Erro ao processar assinatura');
+        }
+      };
+
+      window.cancelSubscription = async function(subscriptionId) {
+        if (!confirm('Tem certeza que deseja cancelar sua assinatura? Esta ação não pode ser desfeita.')) return;
+
+        try {
+          const result = await apiFetch(`/api/subscriptions/${subscriptionId}`, {
+            method: 'DELETE'
+          });
+
+          if (result.success) {
+            alert('Assinatura cancelada com sucesso.');
+            window.location.reload();
+          } else {
+            alert(result.error || 'Erro ao cancelar assinatura');
+          }
+        } catch (error) {
+          alert(error.message || 'Erro ao cancelar assinatura');
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>

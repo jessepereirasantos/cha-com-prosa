@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Escolha seu Plano</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .checkout-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .checkout-header { text-align: center; margin-bottom: 40px; }
+    .checkout-header h1 { font-size: 2.5rem; font-weight: 800; margin: 0 0 12px; background: linear-gradient(135deg, #00d4ff, #00ff88); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .checkout-header p { color: var(--muted); font-size: 1.1rem; margin: 0; }
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px; }
+    .plan-card { background: rgba(12, 18, 36, 0.9); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 28px; position: relative; transition: all 0.3s ease; }
+    .plan-card:hover { border-color: rgba(0, 212, 255, 0.4); transform: translateY(-4px); }
+    .plan-card.popular { border-color: rgba(0, 255, 136, 0.5); }
+    .plan-card.popular::before { content: '⭐ MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #00ff88, #00d4ff); color: #000; padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .plan-name { font-size: 1.5rem; font-weight: 700; color: #00d4ff; margin: 0 0 8px; }
+    .plan-price { font-size: 2.5rem; font-weight: 800; color: #fff; margin: 0 0 4px; }
+    .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .plan-features { list-style: none; padding: 0; margin: 24px 0; }
+    .plan-features li { padding: 8px 0; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .plan-features li::before { content: '✓'; color: #00ff88; font-weight: 700; }
+    .plan-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .plan-btn.primary { background: linear-gradient(135deg, #6d5efc, #8b7bff); color: #fff; }
+    .plan-btn.primary:hover { filter: brightness(1.1); }
+    .coupon-section { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+    .coupon-section h3 { margin: 0 0 12px; font-size: 1rem; }
+    .coupon-row { display: flex; gap: 10px; }
+    .coupon-row input { flex: 1; }
+    .coupon-success { color: #00ff88; margin-top: 10px; font-size: 0.9rem; }
+    .coupon-error { color: #ff4466; margin-top: 10px; font-size: 0.9rem; }
+    .auth-section { background: rgba(109, 94, 252, 0.1); border: 1px solid rgba(109, 94, 252, 0.3); border-radius: 12px; padding: 24px; margin-bottom: 30px; }
+    .auth-section h3 { margin: 0 0 16px; color: #00d4ff; }
+    .auth-tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+    .auth-tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid transparent; }
+    .auth-tab.active { background: rgba(109, 94, 252, 0.2); border-color: rgba(109, 94, 252, 0.4); color: #fff; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+    .logged-user { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 8px; }
+    .logged-user .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #00d4ff, #00ff88); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .footer-info { text-align: center; color: var(--muted); font-size: 0.85rem; }
+    .footer-info a { color: #00d4ff; }
+  </style>
+</head>
+<body>
+  <div class="checkout-container">
+    <div class="checkout-header">
+      <h1>🚀 Escolha seu Plano</h1>
+      <p>Automatize seu WhatsApp com fluxos inteligentes e aumente suas vendas</p>
+    </div>
+
+    <div id="plansContainer">
+      <p class="p">Carregando planos...</p>
+    </div>
+
+    <div class="coupon-section">
+      <h3>🎟️ Tem um cupom de desconto?</h3>
+      <div class="coupon-row">
+        <input type="text" class="input" id="couponCode" placeholder="Digite o código do cupom" />
+        <button class="btn primary" onclick="applyCoupon()">Aplicar</button>
+      </div>
+      <div id="couponResult"></div>
+    </div>
+
+    <div class="auth-section" id="authSection">
+      <h3>📧 Seus dados</h3>
+      <div id="authContent">
+        <!-- Preenchido via JS -->
+      </div>
+    </div>
+
+    <div class="footer-info">
+      <p>Pagamento seguro via <strong>Mercado Pago</strong> 🔒</p>
+      <p>Já tem uma conta? <a href="index.html">Faça login</a></p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let selectedPlan = null;
+    let appliedCoupon = null;
+    let isLoggedIn = !!localStorage.getItem('jwt_token');
+    let authMode = 'register';
+
+    async function loadPlans() {
+      try {
+        const res = await apiFetch('/api/plans', { auth: false });
+        console.log('Planos recebidos:', res);
+        const plans = res.plans || [];
+
+        if (plans.length === 0) {
+          document.getElementById('plansContainer').innerHTML = '<p class="p">Nenhum plano disponível no momento.</p>';
+          return;
+        }
+
+        const popularIndex = plans.length > 1 ? 1 : 0;
+
+        document.getElementById('plansContainer').innerHTML = `
+          <div class="plans-grid">
+            ${plans.map((plan, idx) => `
+              <div class="plan-card ${idx === popularIndex ? 'popular' : ''}" data-plan-id="${plan.id}">
+                <h2 class="plan-name">${plan.name}</h2>
+                <p class="plan-price">R$ ${parseFloat(plan.price_monthly).toFixed(2)} <span>/mês</span></p>
+                <ul class="plan-features">
+                  <li>${plan.max_instances} instância${plan.max_instances > 1 ? 's' : ''} de WhatsApp</li>
+                  <li>${plan.max_flows} fluxo${plan.max_flows > 1 ? 's' : ''} de automação</li>
+                  <li>${plan.api_events_enabled ? 'API de eventos habilitada' : 'API de eventos não inclusa'}</li>
+                  <li>Suporte via WhatsApp</li>
+                  <li>Atualizações gratuitas</li>
+                </ul>
+                <button class="plan-btn primary" onclick="selectPlan(${plan.id}, '${plan.name}', ${plan.price_monthly})">
+                  Assinar ${plan.name}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        document.getElementById('plansContainer').innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar planos.</p>';
+      }
+    }
+
+    function selectPlan(planId, planName, price) {
+      selectedPlan = { id: planId, name: planName, price };
+      
+      document.querySelectorAll('.plan-card').forEach(card => {
+        card.style.borderColor = card.dataset.planId == planId ? '#00d4ff' : '';
+      });
+
+      document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
+      
+      toast({ title: 'Plano selecionado', message: `${planName} - R$ ${price.toFixed(2)}/mês`, type: 'success' });
+    }
+
+    async function applyCoupon() {
+      const code = document.getElementById('couponCode').value.trim();
+      if (!code) {
+        document.getElementById('couponResult').innerHTML = '<p class="coupon-error">Digite um código de cupom</p>';
+        return;
+      }
+
+      try {
+        const res = await apiFetch(`/api/coupons/validate/${encodeURIComponent(code)}`, {
+          method: 'GET',
+          auth: false
+        });
+
+        if (res.valid) {
+          appliedCoupon = res.coupon;
+          let discountText = '';
+          if (res.coupon.discount_type === 'percentage') {
+            discountText = `${res.coupon.discount_value}% de desconto`;
+          } else if (res.coupon.discount_type === 'fixed') {
+            discountText = `R$ ${res.coupon.discount_value} de desconto`;
+          } else if (res.coupon.free_days > 0) {
+            discountText = `${res.coupon.free_days} dias grátis`;
+          }
+          document.getElementById('couponResult').innerHTML = `<p class="coupon-success">✓ Cupom aplicado: ${discountText}</p>`;
+        } else {
+          appliedCoupon = null;
+          document.getElementById('couponResult').innerHTML = `<p class="coupon-error">${res.message || 'Cupom inválido'}</p>`;
+        }
+      } catch (error) {
+        document.getElementById('couponResult').innerHTML = `<p class="coupon-error">${error.message || 'Erro ao validar cupom'}</p>`;
+      }
+    }
+
+    function renderAuthSection() {
+      const container = document.getElementById('authContent');
+
+      if (isLoggedIn) {
+        container.innerHTML = `
+          <div class="logged-user">
+            <div class="avatar">👤</div>
+            <div>
+              <p style="margin:0;font-weight:600;">Você está logado</p>
+              <p style="margin:0;font-size:0.85rem;color:var(--muted);">Clique em assinar para continuar</p>
+            </div>
+          </div>
+          <button class="btn primary" style="width:100%;margin-top:16px;" onclick="proceedToCheckout()">
+            Continuar para Pagamento
+          </button>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="auth-tabs">
+            <div class="auth-tab ${authMode === 'register' ? 'active' : ''}" onclick="setAuthMode('register')">Criar conta</div>
+            <div class="auth-tab ${authMode === 'login' ? 'active' : ''}" onclick="setAuthMode('login')">Já tenho conta</div>
+          </div>
+          <div id="authForm">
+            ${authMode === 'register' ? `
+              <div class="form-group">
+                <label>Nome</label>
+                <input type="text" class="input" id="authName" placeholder="Seu nome" />
+              </div>
+            ` : ''}
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" class="input" id="authEmail" placeholder="seuemail@exemplo.com" />
+            </div>
+            <div class="form-group">
+              <label>Senha</label>
+              <input type="password" class="input" id="authPassword" placeholder="********" />
+            </div>
+            <button class="btn primary" style="width:100%;" onclick="submitAuth()">
+              ${authMode === 'register' ? 'Criar conta e Assinar' : 'Entrar e Assinar'}
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      renderAuthSection();
+    }
+
+    async function submitAuth() {
+      if (!selectedPlan) {
+        toast({ title: 'Atenção', message: 'Selecione um plano primeiro', type: 'warning' });
+        return;
+      }
+
+      const email = document.getElementById('authEmail')?.value.trim();
+      const password = document.getElementById('authPassword')?.value;
+      const name = document.getElementById('authName')?.value.trim();
+
+      if (!email || !password) {
+        toast({ title: 'Atenção', message: 'Preencha email e senha', type: 'warning' });
+        return;
+      }
+
+      if (authMode === 'register' && !name) {
+        toast({ title: 'Atenção', message: 'Preencha seu nome', type: 'warning' });
+        return;
+      }
+
+      try {
+        const path = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const body = authMode === 'register' ? { name, email, password } : { email, password };
+        
+        const res = await apiFetch(path, { method: 'POST', auth: false, body });
+        
+        if (res.token) {
+          setToken(res.token);
+          if (res.user?.role) {
+            localStorage.setItem('user_role', res.user.role);
+          }
+          isLoggedIn = true;
+          toast({ title: 'Sucesso', message: authMode === 'register' ? 'Conta criada!' : 'Login realizado!', type: 'success' });
+          
+          setTimeout(() => proceedToCheckout(), 500);
+        }
+      } catch (error) {
+        toast({ title: 'Erro', message: error.message || 'Falha na autenticação', type: 'danger' });
+      }
+    }
+
+    async function proceedToCheckout() {
+      if (!selectedPlan) {
+        toast({ title: 'Atenção', message: 'Selecione um plano primeiro', type: 'warning' });
+        return;
+      }
+
+      // Redirecionar para página de pagamento personalizada
+      let url = `pagamento.html?plan=${selectedPlan.id}`;
+      if (appliedCoupon) {
+        url += `&coupon=${encodeURIComponent(appliedCoupon.code)}`;
+      }
+      window.location.href = url;
+    }
+
+    // Inicialização movida para initCheckout()
+
+    // Verificar parâmetros da URL e selecionar plano automaticamente
+    const urlParams = new URLSearchParams(window.location.search);
+    const planParam = urlParams.get('plan');
+    
+    async function initCheckout() {
+      await loadPlans();
+      renderAuthSection();
+      
+      if (planParam) {
+        // Aguardar DOM atualizar e selecionar plano
+        setTimeout(() => {
+          const planCard = document.querySelector(`[data-plan-id="${planParam}"]`);
+          if (planCard) {
+            planCard.querySelector('button').click();
+          }
+        }, 300);
+      }
+    }
+    
+    initCheckout();
+  </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eloha Bots - Cupons</title>
+  <link rel="stylesheet" href="css/style.css?v=20260305b" />
+  <style>
+    .coupon-table { width: 100%; border-collapse: collapse; }
+    .coupon-table th, .coupon-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .coupon-table th { color: #00d4ff; font-weight: 600; }
+    .coupon-table tr:hover { background: rgba(255,255,255,0.05); }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-active { background: #00ff88; color: #000; }
+    .badge-inactive { background: rgba(255,255,255,0.2); color: #fff; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #0c1224; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+  </style>
+</head>
+<body>
+  <div data-shell></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (async function () {
+      ensureAuthed();
+      await mountShell({ title: '🎟️ Cupons de Desconto' });
+
+      const content = document.querySelector('[data-shell-content]');
+      content.innerHTML = '<p class="p">Carregando...</p>';
+
+      loadCoupons();
+
+      async function loadCoupons() {
+        try {
+          const res = await apiFetch('/api/coupons?active=false');
+          const coupons = res.coupons || [];
+
+          let html = `
+            <div style="margin-bottom: 20px;">
+              <button class="btn primary" onclick="openCreateCoupon()">+ Novo Cupom</button>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <p class="h2">Cupons Cadastrados (${coupons.length})</p>
+              </div>
+              <div class="card-b">
+                <table class="coupon-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Descrição</th>
+                      <th>Tipo</th>
+                      <th>Valor</th>
+                      <th>Usos</th>
+                      <th>Validade</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          if (coupons.length === 0) {
+            html += '<tr><td colspan="8" style="text-align:center;">Nenhum cupom cadastrado</td></tr>';
+          } else {
+            coupons.forEach(c => {
+              const typeLabels = {
+                'percentage': 'Porcentagem',
+                'fixed': 'Valor Fixo',
+                'free_period': 'Período Grátis'
+              };
+              const valueDisplay = c.discount_type === 'percentage' ? `${c.discount_value}%` :
+                                   c.discount_type === 'fixed' ? `R$ ${parseFloat(c.discount_value).toFixed(2)}` :
+                                   `${c.free_days || 30} dias`;
+              const usesDisplay = c.max_uses ? `${c.uses_count}/${c.max_uses}` : `${c.uses_count}/∞`;
+              const validUntil = c.valid_until ? new Date(c.valid_until).toLocaleDateString('pt-BR') : 'Sem limite';
+
+              html += `
+                <tr>
+                  <td><strong style="color:#00d4ff;">${c.code}</strong></td>
+                  <td>${c.description || '-'}</td>
+                  <td>${typeLabels[c.discount_type] || c.discount_type}</td>
+                  <td>${valueDisplay}</td>
+                  <td>${usesDisplay}</td>
+                  <td>${validUntil}</td>
+                  <td><span class="badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'Ativo' : 'Inativo'}</span></td>
+                  <td>
+                    ${c.is_active ? `<button class="btn small danger" onclick="deactivateCoupon(${c.id})">Desativar</button>` : ''}
+                    <button class="btn small danger" onclick="deleteCoupon(${c.id}, '${c.code}')">Excluir</button>
+                  </td>
+                </tr>
+              `;
+            });
+          }
+
+          html += '</tbody></table></div></div>';
+          content.innerHTML = html;
+
+        } catch (error) {
+          console.error('Erro:', error);
+          content.innerHTML = '<p class="p" style="color:#ff4466;">Erro ao carregar cupons. Verifique se você é admin.</p>';
+        }
+      }
+
+      window.openCreateCoupon = function() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="h3">Criar Novo Cupom</h3>
+              <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form id="couponForm">
+              <div class="form-group">
+                <label>Código do Cupom</label>
+                <input class="input" type="text" name="code" required placeholder="NATAL2026" style="text-transform:uppercase;" />
+              </div>
+              <div class="form-group">
+                <label>Descrição</label>
+                <input class="input" type="text" name="description" placeholder="Promoção de Natal" />
+              </div>
+              <div class="form-group">
+                <label>Tipo de Desconto</label>
+                <select class="input" name="discount_type" id="discountType" onchange="toggleDiscountFields()">
+                  <option value="percentage">Porcentagem (%)</option>
+                  <option value="fixed">Valor Fixo (R$)</option>
+                  <option value="free_period">Período Gratuito</option>
+                </select>
+              </div>
+              <div class="form-group" id="discountValueGroup">
+                <label>Valor do Desconto</label>
+                <input class="input" type="number" step="0.01" name="discount_value" value="10" />
+              </div>
+              <div class="form-group" id="freeDaysGroup" style="display:none;">
+                <label>Dias Gratuitos</label>
+                <input class="input" type="number" name="free_days" value="30" />
+              </div>
+              <div class="form-group">
+                <label>Máximo de Usos (deixe vazio para ilimitado)</label>
+                <input class="input" type="number" name="max_uses" placeholder="100" />
+              </div>
+              <div class="form-group">
+                <label>Válido Até (deixe vazio para sem limite)</label>
+                <input class="input" type="date" name="valid_until" />
+              </div>
+              <button type="submit" class="btn primary">Criar Cupom</button>
+            </form>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        window.toggleDiscountFields = function() {
+          const type = document.getElementById('discountType').value;
+          document.getElementById('discountValueGroup').style.display = type === 'free_period' ? 'none' : 'block';
+          document.getElementById('freeDaysGroup').style.display = type === 'free_period' ? 'block' : 'none';
+        };
+
+        document.getElementById('couponForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = {
+            code: formData.get('code').toUpperCase(),
+            description: formData.get('description'),
+            discount_type: formData.get('discount_type'),
+            discount_value: parseFloat(formData.get('discount_value')) || 0,
+            free_days: parseInt(formData.get('free_days')) || 30,
+            max_uses: formData.get('max_uses') ? parseInt(formData.get('max_uses')) : null,
+            valid_until: formData.get('valid_until') || null
+          };
+
+          try {
+            const res = await apiFetch('/api/coupons', { method: 'POST', body: data });
+
+            if (res.success) {
+              alert('Cupom criado com sucesso!');
+              modal.remove();
+              loadCoupons();
+            } else {
+              alert(res.error || 'Erro ao criar cupom');
+            }
+          } catch (error) {
+            console.error('Erro:', error);
+            alert(error.message || 'Erro ao criar cupom');
+          }
+        });
+      };
+
+      window.deactivateCoupon = async function(couponId) {
+        if (!confirm('Desativar este cupom?')) return;
+
+        try {
+          const res = await apiFetch(`/api/coupons/${couponId}/deactivate`, { method: 'PUT' });
+          if (res.success) {
+            loadCoupons();
+          } else {
+            alert(res.error || 'Erro ao desativar');
+          }
+        } catch (error) {
+          alert('Erro ao desativar cupom');
+        }
+      };
+
+      window.deleteCoupon = async function(couponId, code) {
+        if (!confirm(`Excluir o cupom "${code}"?`)) return;
+
+        try {
+          const res = await apiFetch(`/api/coupons/${couponId}`, { method: 'DELETE' });
+          if (res.success) {
+            loadCoupons();
+          } else {
+            alert(res.error || 'Erro ao excluir');
+          }
+        } catch (error) {
+          alert('Erro ao excluir cupom');
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>
