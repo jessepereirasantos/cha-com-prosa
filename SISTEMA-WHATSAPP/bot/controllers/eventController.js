@@ -109,7 +109,10 @@ async function triggerPurchaseEvent(req, res) {
       );
     }
 
-    const jid = `${normalizedPhone}@s.whatsapp.net`;
+    // Garante que o JID do WhatsApp tem o codigo do pais (55 para Brasil)
+    const phoneForJid = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
+    const jid = `${phoneForJid}@s.whatsapp.net`;
+    console.log(`[EventController] JID gerado: ${jid}`);
 
     const sock = baileysManager.getSession(instanceId);
     if (!sock) {
