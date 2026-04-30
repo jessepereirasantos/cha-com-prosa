@@ -1,21 +1,22 @@
 const axios = require('axios');
 
 async function testWA() {
-  const url = 'https://escolateologicaeloha.com.br/painel/public/api/triggers/create';
+  const url = 'https://bot-eloha.discloud.app/api/events/purchase';
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTEsImVtYWlsIjoiaWFkZWxvaGFAZ21haWwuY29tIiwiaWF0IjoxNzc3NDg4OTQyLCJleHAiOjE3NzgwOTM3NDJ9.DzGFWgF-8JjKcQZWuUphmjtMTiUZvdtQp6NtLILjM9o';
 
   try {
-    console.log('Sending request...');
+    console.log('Sending request to', url);
     const response = await axios.post(
       url,
       {
-        instance_id: 15,
-        phone: '5511999999999', // dummy
-        event: 'purchase_completed',
+        name: "João Silva",
+        phone: "5511999999999",
+        product: "Ingresso Chá com Prosa",
+        value: 57.00,
         data: {
-          customer_name: 'Teste Local',
-          product_name: 'Ingresso Chá com Prosa',
-          amount: 57.00
+          ticket_id: "test1234",
+          ticket_code: "XYZ987",
+          email: "joao@email.com"
         }
       },
       {
@@ -27,7 +28,8 @@ async function testWA() {
     );
     console.log('Success:', response.data);
   } catch (error) {
-    console.error('Error:', error.response ? error.response.data : error.message);
+    console.error('Error Status:', error.response ? error.response.status : error.message);
+    console.error('Error Data:', error.response ? error.response.data : error.message);
   }
 }
 

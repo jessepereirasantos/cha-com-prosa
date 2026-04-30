@@ -30,7 +30,8 @@ export async function sendWhatsAppNotification(ticket: any) {
         data: {
           ticket_id: ticket.id,
           ticket_code: ticket.code,
-          email: ticket.email
+          email: ticket.email,
+          ticket_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chacomprosa.iadeeloha.com.br'}/api/generate-ticket?id=${ticket.id}`
         }
       },
       {
