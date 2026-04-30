@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
-import { syncTicketStatus, updateTicket } from '../../../lib/db';
+import { updateTicket } from '../../../lib/db';
 import { query } from '../../../lib/mysql';
 import { TicketStatus } from '../../../lib/types';
 import { sendTicketEmail } from '../../../lib/email';
