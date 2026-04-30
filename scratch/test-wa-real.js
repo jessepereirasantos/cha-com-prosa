@@ -21,7 +21,7 @@ async function testRealWA() {
           ticket_code: "XYZ987",
           email: "teste@teste.com",
           // URL de PDF publico para teste — em producao sera o link real do ingresso
-          ticket_url: "https://www.w3.org/WAI/UR/pdf-test/A2/ev.pdf"
+          ticket_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         }
       },
       {
