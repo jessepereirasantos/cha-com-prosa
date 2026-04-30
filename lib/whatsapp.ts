@@ -29,7 +29,7 @@ export async function sendWhatsAppNotification(ticket: any) {
         value: 57.00,
         data: {
           ticket_id: ticket.id,
-          ticket_code: ticket.code,
+          ticket_code: ticket.id.slice(-6).toUpperCase(),
           email: ticket.email,
           ticket_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chacomprosa.iadeeloha.com.br'}/api/generate-ticket?id=${ticket.id}`
         }
