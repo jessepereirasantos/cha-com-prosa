@@ -607,14 +607,37 @@ function checkTriggerMatch(flowData, inputText) {
 }
 
 async function processIncomingMessage({ instanceId, fromJid, text, sendText, sendMedia, sendPresence }) {
+  const isApiEvent = text === '__API_EVENT_TRIGGER__';
+  console.log(`[FlowEngine] processIncomingMessage | instance=${instanceId} | phone=${fromJid} | isApiEvent=${isApiEvent}`);
+
   const instance = await getInstanceContext(instanceId);
-  if (!instance || !instance.client_id) return;
-  if (!instance.flow_id || !instance.linked_flow_id || !instance.is_active) return;
+  if (!instance || !instance.client_id) {
+    console.error(`[FlowEngine] ❌ Instância ${instanceId} não encontrada ou sem client_id`);
+    return;
+  }
+  if (!instance.flow_id) {
+    console.error(`[FlowEngine] ❌ Instância ${instanceId} não tem flow_id vinculado`);
+    return;
+  }
+  if (!instance.linked_flow_id) {
+    console.error(`[FlowEngine] ❌ Fluxo ${instance.flow_id} não encontrado na tabela flows para client_id=${instance.client_id}`);
+    return;
+  }
+  // Para eventos de API (compras), ignora is_active para garantir entrega
+  if (!isApiEvent && !instance.is_active) {
+    console.warn(`[FlowEngine] ⚠️ Fluxo ${instance.flow_id} inativo - bloqueando msg normal`);
+    return;
+  }
+  console.log(`[FlowEngine] ✅ Instância OK | flow_id=${instance.flow_id} | is_active=${instance.is_active}`);
 
   // Parse flow data completo para verificar trigger_config
   const flowData = parseFlowData(instance);
   const structure = normalizeFlowSteps(flowData);
-  if (!structure || typeof structure !== 'object') return;
+  if (!structure || typeof structure !== 'object') {
+    console.error(`[FlowEngine] ❌ Estrutura do fluxo ${instance.flow_id} inválida ou vazia`);
+    return;
+  }
+  console.log(`[FlowEngine] ✅ Estrutura OK | nós: ${Object.keys(structure).join(', ')}`);
 
   const userPhone = normalizePhoneFromJid(fromJid);
   if (!userPhone) return;
