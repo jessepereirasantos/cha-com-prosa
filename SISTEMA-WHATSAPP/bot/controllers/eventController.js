@@ -178,10 +178,28 @@ async function triggerPurchaseEvent(req, res) {
     setImmediate(async () => {
       try {
         console.log(`[EventController] Disparando fluxo para ${normalizedPhone} na instância ${instanceId}`);
+        
+        // ENVIO DO LOGO "CHÁ COM PROSA" ANTES DA MENSAGEM
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const logoPath = path.join(__dirname, '../assets/logo.png');
+          if (fs.existsSync(logoPath)) {
+            await sock.sendMessage(jid, { 
+              image: fs.readFileSync(logoPath)
+            });
+            console.log(`[EventController] Logo enviada com sucesso para ${jid}`);
+          }
+        } catch (e) {
+          console.error('[EventController] Falha ao enviar logo:', e);
+        }
+
         await flowEngine.processIncomingMessage({
           instanceId,
           fromJid: jid,
           text: '__API_EVENT_TRIGGER__',
+          isApiEvent: true,
+          eventData,
           sendText,
           sendMedia,
           sendPresence
