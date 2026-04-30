@@ -97,9 +97,14 @@ export async function POST(req: Request) {
               sendTicketEmail(ticket.email, ticket).catch(e => console.error('[EMAIL]', e));
               
               // WhatsApp
+              // WhatsApp - Non-blocking
               if (ticket.whatsapp_sent === 0) {
-                await sendWhatsAppNotification(ticket);
+                // Marca como enviado ANTES para evitar duplicidade em caso de timeout
                 await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+                
+                sendWhatsAppNotification(ticket).catch(err => {
+                  console.error('[WEBHOOK] WhatsApp error:', err);
+                });
               } else {
                 console.log(`[WHATSAPP] Mensagem já havia sido enviada para ticket ${ticket.id}`);
               }
