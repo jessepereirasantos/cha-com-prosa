@@ -414,14 +414,23 @@ async function sendStepContent({ step, fromJid, sendText, sendMedia }) {
 
   if ((stepType === 'image' || stepType === 'audio' || stepType === 'video' || stepType === 'document') && mediaUrl && typeof sendMedia === 'function') {
     try {
-      const sent = await sendMedia(fromJid, {
+      await sendMedia(fromJid, {
         type: stepType,
         url: mediaUrl,
         caption: stepMessage || (stepType === 'document' ? 'ingresso.pdf' : '')
       });
-      if (sent) return;
+      return; // enviado com sucesso
     } catch (e) {
       console.error('[FlowEngine] Falha ao enviar mídia no nó:', e?.message || e);
+      // Fallback: se o documento falhar, envia o link como texto
+      if (stepType === 'document' && mediaUrl) {
+        try {
+          await sendText(fromJid, `📄 *Seu ingresso está disponível aqui:*\n${mediaUrl}`);
+        } catch (e2) {
+          console.error('[FlowEngine] Falha no fallback de texto do documento:', e2?.message || e2);
+        }
+      }
+      return;
     }
   }
 
@@ -742,6 +751,29 @@ async function processIncomingMessage({ instanceId, fromJid, text, sendText, sen
   }
 
   if (!currentStep) return;
+
+  // Para eventos de API (compras), executa o fluxo COMPLETO a partir do nó atual
+  // Isso garante que a mensagem do nó 'start' E o ingresso sejam enviados
+  if (isApiEvent) {
+    console.log(`[FlowEngine] API Event: executando cadeia completa a partir do nó '${workingNode}'`);
+    const chainResult = await executeNodeChain({
+      startNodeId: workingNode,
+      structure,
+      instanceId,
+      userPhone,
+      fromJid,
+      sendText,
+      sendMedia,
+      sendPresence,
+      conversationNode: workingNode
+    });
+    await pool.query(
+      'UPDATE conversations SET current_node = ?, updated_at = CURRENT_TIMESTAMP WHERE instance_id = ? AND user_phone = ?',
+      [chainResult.finalNodeId || workingNode, instanceId, userPhone]
+    );
+    emitInstanceEvent(instanceId, 'INSTANCE_GOVERNANCE_UPDATED', { status: instance.status || 'connected' });
+    return;
+  }
 
   const transition = pickNextNode(currentStep, text);
 

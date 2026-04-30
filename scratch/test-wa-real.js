@@ -21,7 +21,9 @@ async function testRealWA() {
           ticket_id: "test1234",
           ticket_code: "XYZ987",
           email: "teste@teste.com",
-          ticket_url: "https://chacomprosa.iadeeloha.com.br/api/generate-ticket?id=cm87i5n2r000214aohv55h11x"
+          // URL de um PDF público para testar o envio do documento
+          // Em produção, essa URL será gerada automaticamente com o ID real do ingresso
+          ticket_url: "https://www.w3.org/WAI/UR/pdf-test/A2/ev.pdf"
         }
       },
       {
