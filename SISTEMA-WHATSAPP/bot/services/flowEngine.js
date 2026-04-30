@@ -408,15 +408,16 @@ async function sendStepContent({ step, fromJid, sendText, sendMedia }) {
   }
 
   const stepType = String(step.type || '').trim().toLowerCase();
-  const mediaUrl = String(step?.media?.url || '').trim();
-  const stepMessage = String(step?.message || '').trim();
+  const mediaUrl = String(step?.media?.url || step?.url || '').trim();
+  // Suporta tanto "message" quanto "content" como campo de texto
+  const stepMessage = String(step?.message || step?.content || '').trim();
 
-  if ((stepType === 'image' || stepType === 'audio' || stepType === 'video') && mediaUrl && typeof sendMedia === 'function') {
+  if ((stepType === 'image' || stepType === 'audio' || stepType === 'video' || stepType === 'document') && mediaUrl && typeof sendMedia === 'function') {
     try {
       const sent = await sendMedia(fromJid, {
         type: stepType,
         url: mediaUrl,
-        caption: stepMessage
+        caption: stepMessage || (stepType === 'document' ? 'ingresso.pdf' : '')
       });
       if (sent) return;
     } catch (e) {
@@ -572,6 +573,10 @@ async function executeNodeChain({
 function checkTriggerMatch(flowData, inputText) {
   const triggerConfig = flowData?.trigger_config;
   const inputLower = String(inputText || '').trim().toLowerCase();
+  
+  if (inputText === '__API_EVENT_TRIGGER__') {
+    return true; // Bypass trigger check para disparos via API externa
+  }
   
   if (!triggerConfig || !triggerConfig.type) {
     // Modo legado: qualquer mensagem dispara se não há config

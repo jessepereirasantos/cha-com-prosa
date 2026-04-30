@@ -121,12 +121,30 @@ async function triggerPurchaseEvent(req, res) {
     }
 
     const flowEngine = require('../services/flowEngine');
-    
-    const sendText = async (to, text) => {
-      await sock.sendMessage(to, { text });
+
+    // Interpola variáveis do evento no texto (ex: {{name}}, {{custom.ticket_code}})
+    const interpolate = (text, vars) => {
+      if (!text || !vars) return text;
+      return text.replace(/\{\{([^}]+)\}\}/g, (_, path) => {
+        const parts = path.trim().split('.');
+        let val = vars;
+        for (const part of parts) val = val?.[part];
+        return val !== undefined && val !== null ? String(val) : `{{${path}}}`;
+      });
     };
 
-    const sendMedia = async (to, mediaType, url, caption) => {
+    const sendText = async (to, text) => {
+      const resolved = interpolate(text, eventData);
+      console.log(`[EventController] sendText -> ${to}: ${resolved}`);
+      await sock.sendMessage(to, { text: resolved });
+    };
+
+    // flowEngine chama sendMedia(to, { type, url, caption })
+    const sendMedia = async (to, mediaObj) => {
+      const mediaType = String(mediaObj?.type || '').toLowerCase();
+      const url = interpolate(String(mediaObj?.url || ''), eventData);
+      const caption = interpolate(String(mediaObj?.caption || ''), eventData);
+      console.log(`[EventController] sendMedia(${mediaType}) -> ${to}: ${url}`);
       const mediaMsg = {};
       if (mediaType === 'image') {
         mediaMsg.image = { url };
@@ -139,9 +157,12 @@ async function triggerPurchaseEvent(req, res) {
         if (caption) mediaMsg.caption = caption;
       } else if (mediaType === 'document') {
         mediaMsg.document = { url };
-        if (caption) mediaMsg.fileName = caption;
+        mediaMsg.fileName = caption || 'ingresso.pdf';
+        mediaMsg.mimetype = 'application/pdf';
       }
-      await sock.sendMessage(to, mediaMsg);
+      if (Object.keys(mediaMsg).length > 0) {
+        await sock.sendMessage(to, mediaMsg);
+      }
     };
 
     const sendPresence = async (to, presence) => {
@@ -153,6 +174,7 @@ async function triggerPurchaseEvent(req, res) {
 
     setImmediate(async () => {
       try {
+        console.log(`[EventController] Disparando fluxo para ${normalizedPhone} na instância ${instanceId}`);
         await flowEngine.processIncomingMessage({
           instanceId,
           fromJid: jid,
@@ -161,6 +183,7 @@ async function triggerPurchaseEvent(req, res) {
           sendMedia,
           sendPresence
         });
+        console.log(`[EventController] Fluxo executado com sucesso para ${normalizedPhone}`);
       } catch (e) {
         console.error('[EventController] Erro ao processar evento:', e);
       }
