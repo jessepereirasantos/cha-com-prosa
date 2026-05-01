@@ -481,7 +481,7 @@ export default function DashboardClient() {
                         />
                     </div>
                     <button 
-                      onClick={handleSync}
+                      onClick={() => handleSync(false)}
                       disabled={isSyncing}
                       title="Sincronizar pagamentos pendentes com Mercado Pago"
                       className={`p-3 bg-white border border-rose-100 rounded-xl text-stone-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm ${isSyncing ? 'animate-spin cursor-not-allowed' : ''}`}
