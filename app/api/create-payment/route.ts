@@ -86,35 +86,47 @@ export async function POST(req: Request) {
     const ticketBeforeUpdate = await query('SELECT id, status, paymentIdMP, code FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
     console.log(`[DEBUG CREATE] Ticket no banco ANTES do update: id=${ticketBeforeUpdate[0]?.id}, status=${ticketBeforeUpdate[0]?.status}, paymentIdMP=${ticketBeforeUpdate[0]?.paymentIdMP}`);
 
-    // 3. Consulta direta e imediata à API do Mercado Pago para determinismo (PASSO CIRÚRGICO)
+    // 3. Mecanismo de Retry Inteligente (MÁXIMA DETERMINAÇÃO)
     const { getPaymentStatus } = await import('../../../lib/mercadopago');
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
     
     let isApproved = false;
 
     if (paymentId) {
-      const mpStatusCheck = await getPaymentStatus(paymentId);
-      const finalStatus = mpStatusCheck.status;
+      console.log('[CREATE] Payment criado:', paymentId);
 
-      isApproved = finalStatus === 'approved' || finalStatus === 'authorized';
-
-      if (isApproved) {
-        console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} confirmado via consulta direta!`);
-        // Atualiza banco imediatamente
-        await query(
-          'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
-          [paymentId, ticket.id]
-        );
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        if (attempt > 1) await delay(1000); // Espera 1s entre tentativas (T2 e T3)
         
-        // Dispara WhatsApp sincronizado
-        sendWhatsAppNotification({ ...ticket, amount })
-          .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
-          .catch(err => console.error('[WHATSAPP] Erro:', err));
-      } else {
-        console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} criado com status: ${finalStatus}. Salvando vínculo.`);
-        await query(
-          'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
-          [paymentId, ticket.id]
-        );
+        const mpStatusCheck = await getPaymentStatus(paymentId);
+        const finalStatus = mpStatusCheck.status;
+        console.log(`[VERIFY] Tentativa ${attempt} - Status:`, finalStatus);
+
+        isApproved = finalStatus === 'approved' || finalStatus === 'authorized';
+
+        if (isApproved) {
+          console.log('[DB] Atualizando para PAID:', paymentId);
+          await query(
+            'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
+            [paymentId, ticket.id]
+          );
+          
+          // Dispara WhatsApp sincronizado
+          sendWhatsAppNotification({ ...ticket, amount })
+            .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
+            .catch(err => console.error('[WHATSAPP] Erro:', err));
+          
+          break; // Sai do loop se aprovado
+        }
+
+        // Se chegar na última tentativa e ainda estiver pendente, apenas vincula o ID
+        if (attempt === 3) {
+          console.log(`[DETERMINÍSTICO] Finalizado após 3 tentativas. Status: ${finalStatus}. Salvando vínculo.`);
+          await query(
+            'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
+            [paymentId, ticket.id]
+          );
+        }
       }
     }
 
