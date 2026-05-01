@@ -70,26 +70,30 @@ export default function DashboardClient() {
     
     const interval = setInterval(() => {
       console.log('[AUTO-SYNC] Iniciando sincronização automática...');
-      handleSync();
-    }, 20000); // 20 segundos - seguro contra rate limit do Mercado Pago
+      handleSync(true); // true para modo silencioso
+    }, 20000); // 20 segundos
     
     return () => clearInterval(interval);
   }, [activeTab]);
 
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleSync = async () => {
+  const handleSync = async (silent = false) => {
     setIsSyncing(true);
     try {
       const res = await fetch('/api/admin/sync-payments', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        alert(`${data.updatedCount} pagamentos foram sincronizados e atualizados!`);
-        setRefreshTrigger(p => p + 1);
+        if (!silent) {
+          alert(`${data.updatedCount} pagamentos foram sincronizados e atualizados!`);
+        }
+        if (data.updatedCount > 0) {
+          setRefreshTrigger(p => p + 1);
+        }
       }
     } catch (error) {
       console.error('Sync error:', error);
-      alert('Erro ao sincronizar pagamentos.');
+      if (!silent) alert('Erro ao sincronizar pagamentos.');
     } finally {
       setIsSyncing(false);
     }

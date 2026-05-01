@@ -6,11 +6,17 @@ import { cookies } from 'next/headers';
 import { sendWhatsAppNotification } from '../../../../lib/whatsapp';
 import { query } from '../../../../lib/mysql';
 
-export async function POST() {
-  const cookieStore = await cookies();
-  const authCookie = cookieStore.get('admin_auth');
-  if (!authCookie || authCookie.value !== 'true') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const cronSecret = searchParams.get('cron_secret') || req.headers.get('x-cron-secret');
+  
+  // Se não for cron, exige o cookie de admin
+  if (cronSecret !== process.env.CRON_SECRET) {
+    const cookieStore = await cookies();
+    const authCookie = cookieStore.get('admin_auth');
+    if (!authCookie || authCookie.value !== 'true') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
   }
 
   try {

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/sync-payments?cron_secret=chacomprosa2026secret",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
