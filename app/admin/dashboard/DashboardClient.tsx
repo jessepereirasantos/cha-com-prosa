@@ -160,6 +160,30 @@ export default function DashboardClient() {
     }
   };
 
+  const [isResending, setIsResending] = useState<string | null>(null);
+
+  const handleResendWhatsApp = async (id: string) => {
+    setIsResending(id);
+    try {
+      const res = await fetch('/api/admin/tickets/resend-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        alert('Solicitação de reenvio enviada ao bot!');
+        setRefreshTrigger(p => p + 1);
+      } else {
+        alert('Erro ao reenviar. Verifique se o bot está online.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao tentar reenviar.');
+    } finally {
+      setIsResending(null);
+    }
+  };
+
   const printParticipantsList = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -547,6 +571,16 @@ export default function DashboardClient() {
                               </td>
                               <td className="p-6 text-right">
                                 <div className="flex justify-end gap-3">
+                                  {t.status === TicketStatus.PAID && (
+                                    <button 
+                                      onClick={() => handleResendWhatsApp(t.id)} 
+                                      disabled={isResending === t.id}
+                                      className={`p-2 transition-all hover:scale-110 ${t.whatsapp_sent ? 'text-green-500 hover:text-green-600' : 'text-stone-300 hover:text-primary'} ${isResending === t.id ? 'animate-spin' : ''}`}
+                                      title={t.whatsapp_sent ? "WhatsApp já enviado. Clique para reenviar." : "Enviar WhatsApp agora"}
+                                    >
+                                      <Phone className="w-4 h-4" />
+                                    </button>
+                                  )}
                                   <Link href={`/ticket/${t.id}`} target="_blank" className="p-2 text-stone-300 hover:text-primary transition-all hover:scale-110"><Eye className="w-4 h-4" /></Link>
                                   <button onClick={() => fetchData()} className="p-2 text-stone-300 hover:text-primary transition-all hover:scale-110"><RefreshCw className="w-4 h-4" /></button>
                                 </div>
