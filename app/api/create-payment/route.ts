@@ -88,34 +88,40 @@ export async function POST(req: Request) {
 
     // 3. Consulta direta e imediata à API do Mercado Pago para determinismo (PASSO CIRÚRGICO)
     const { getPaymentStatus } = await import('../../../lib/mercadopago');
-    const mpStatusCheck = await getPaymentStatus(paymentId);
-    const finalStatus = mpStatusCheck.status;
-
-    const isApproved = finalStatus === 'approved' || finalStatus === 'authorized';
     
-    if (isApproved) {
-      console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} confirmado via consulta direta! Atualizando banco...`);
-      const updateResult = await query(
-        'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
-        [paymentId, ticket.id]
-      ) as any;
-      
-      // Disparo de WhatsApp sincronizado com a confirmação real
-      sendWhatsAppNotification({ ...ticket, amount })
-        .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
-        .catch(err => console.error('[WHATSAPP] Erro no fluxo determinístico:', err));
-    } else {
-      console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} criado com status: ${finalStatus}. Salvando vínculo.`);
-      await query(
-        'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
-        [paymentId, ticket.id]
-      );
+    let isApproved = false;
+
+    if (paymentId) {
+      const mpStatusCheck = await getPaymentStatus(paymentId);
+      const finalStatus = mpStatusCheck.status;
+
+      isApproved = finalStatus === 'approved' || finalStatus === 'authorized';
+
+      if (isApproved) {
+        console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} confirmado via consulta direta!`);
+        // Atualiza banco imediatamente
+        await query(
+          'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
+          [paymentId, ticket.id]
+        );
+        
+        // Dispara WhatsApp sincronizado
+        sendWhatsAppNotification({ ...ticket, amount })
+          .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
+          .catch(err => console.error('[WHATSAPP] Erro:', err));
+      } else {
+        console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} criado com status: ${finalStatus}. Salvando vínculo.`);
+        await query(
+          'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
+          [paymentId, ticket.id]
+        );
+      }
     }
 
     return NextResponse.json({
       success: true,
-      id: ticket.id,
-      payment_id: paymentId,
+      paymentId: paymentId,
+      ticketId: ticket.id,
       qr_code: qrCode,
       qr_code_base64: qrCodeBase64,
       status: isApproved ? 'approved' : 'pending'
