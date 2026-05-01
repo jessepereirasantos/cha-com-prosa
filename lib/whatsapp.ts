@@ -38,7 +38,8 @@ export async function sendWhatsAppNotification(ticket: any) {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 8000 // 8 segundos para dar tempo do PDF ser gerado sem derrubar a Vercel
       }
     );
     console.log('[WHATSAPP] Sucesso no envio');

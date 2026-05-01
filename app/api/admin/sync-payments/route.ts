@@ -28,8 +28,8 @@ export async function POST() {
             
             // Backup notification
             if (ticket.whatsapp_sent === 0) {
-              await sendWhatsAppNotification(ticket);
               await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+              sendWhatsAppNotification(ticket).catch(e => console.error('[SYNC] WhatsApp error:', e));
             }
             
             updatedCount++;

@@ -64,6 +64,18 @@ export default function DashboardClient() {
     });
   }, [refreshTrigger, router, fetchData]);
 
+  // Auto-sync de pagamentos a cada 60 segundos para garantir robustez
+  useEffect(() => {
+    if (activeTab !== 'tickets' && activeTab !== 'overview') return;
+    
+    const interval = setInterval(() => {
+      console.log('[AUTO-SYNC] Iniciando sincronização automática...');
+      handleSync();
+    }, 60000); // 1 minuto
+    
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSync = async () => {
