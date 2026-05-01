@@ -71,7 +71,7 @@ export default function DashboardClient() {
     const interval = setInterval(() => {
       console.log('[AUTO-SYNC] Iniciando sincronização automática...');
       handleSync();
-    }, 60000); // 1 minuto
+    }, 20000); // 20 segundos - seguro contra rate limit do Mercado Pago
     
     return () => clearInterval(interval);
   }, [activeTab]);
