@@ -19,19 +19,17 @@ export async function sendWhatsAppNotification(ticket: any) {
   const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
 
   try {
-    console.log(`[WHATSAPP] Enviando mensagem para: ${phoneFormatted}`);
+    console.log(`[WHATSAPP] Enviando gatilho purchase_completed para: ${phoneFormatted}`);
     const response = await axios.post(
-      `${baseUrl}/api/events/purchase`,
+      `${baseUrl}/api/triggers/create`,
       {
-        name: ticket.name,
+        instance_id: 1,
         phone: phoneFormatted,
-        product: "Ingresso Chá com Prosa",
-        value: 57.00,
+        event: "purchase_completed",
         data: {
-          ticket_id: ticket.id,
-          ticket_code: ticket.id.slice(-6).toUpperCase(),
-          email: ticket.email,
-          ticket_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chacomprosa.iadeeloha.com.br'}/api/generate-ticket?id=${ticket.id}`
+          customer_name: ticket.name,
+          product_name: "Ingresso Chá com Prosa",
+          amount: ticket.amount || 57.00
         }
       },
       {
@@ -39,13 +37,12 @@ export async function sendWhatsAppNotification(ticket: any) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 8000 // 8 segundos para dar tempo do PDF ser gerado sem derrubar a Vercel
+        timeout: 5000
       }
     );
-    console.log('[WHATSAPP] Sucesso no envio');
+    console.log('[WHATSAPP] gatilho enviado com sucesso');
     return response.data;
   } catch (error: any) {
-    console.error(`[WHATSAPP] Erro ao enviar: ${error?.response?.data?.message || error.message}`);
-    // Non-blocking, do not throw
+    console.error(`[WHATSAPP] Erro no gatilho: ${error?.response?.data?.message || error.message}`);
   }
 }

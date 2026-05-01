@@ -60,15 +60,12 @@ export default function CheckoutPage() {
 
           if (data.status === 'approved') {
             clearInterval(interval);
-            setStep(3); // Mostra sucesso
-            setTimeout(() => {
-              router.push('/confirmacao');
-            }, 2000);
+            router.push('/confirmacao');
           }
         } catch (err) {
           console.error('Polling error:', err);
         }
-      }, 3000);
+      }, 1000);
     }
 
     return () => {
@@ -202,9 +199,8 @@ export default function CheckoutPage() {
         localStorage.setItem('last_ticket_id', result.id);
         localStorage.setItem('last_ticket_name', data.name);
         if (result.status === 'approved') {
-          // Aprovado imediatamente → vai para sucesso
-          setStep(3);
-          setTimeout(() => router.push('/confirmacao'), 1500);
+          // Aprovado imediatamente → Redireciona na hora
+          router.push('/confirmacao');
         } else {
           // Em processamento (in_process) → faz polling igual ao PIX
           setCardPaymentId(result.payment_id);
