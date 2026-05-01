@@ -86,39 +86,30 @@ export async function POST(req: Request) {
     const ticketBeforeUpdate = await query('SELECT id, status, paymentIdMP, code FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
     console.log(`[DEBUG CREATE] Ticket no banco ANTES do update: id=${ticketBeforeUpdate[0]?.id}, status=${ticketBeforeUpdate[0]?.status}, paymentIdMP=${ticketBeforeUpdate[0]?.paymentIdMP}`);
 
-    // 3. Atualiza o ticket com o ID do pagamento do Mercado Pago (v2.2 - Sync Fix Cartão)
-    // Se for cartão e já estiver aprovado ou authorized, atualiza o status no banco na hora!
-    // Nota: Mercado Pago retorna 'authorized' para cartão quando o valor é reservado,
-    // e em seguida envia webhook com 'approved'. Ambos devem marcar como paid.
-    const isCardApproved = paymentMethod === 'card' && (paymentStatus === 'approved' || paymentStatus === 'authorized');
-    if (isCardApproved) {
-      console.log(`[CREATE-PAYMENT] Cartão aprovado/authorized. Forçando status PAID para ticket ${ticket.id}.`);
+    // 3. Consulta direta e imediata à API do Mercado Pago para determinismo (PASSO CIRÚRGICO)
+    const { getPaymentStatus } = await import('../../../lib/mercadopago');
+    const mpStatusCheck = await getPaymentStatus(paymentId);
+    const finalStatus = mpStatusCheck.status;
+
+    const isApproved = finalStatus === 'approved' || finalStatus === 'authorized';
+    
+    if (isApproved) {
+      console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} confirmado via consulta direta! Atualizando banco...`);
       const updateResult = await query(
         'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
       ) as any;
-      console.log(`[DEBUG CREATE] UPDATE result: affectedRows=${updateResult.affectedRows}, changedRows=${updateResult.changedRows}`);
-      // Verifica se realmente atualizou
-      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP, whatsapp_sent FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
-      console.log(`[DEBUG CREATE] Ticket DEPOIS do update: status=${ticketAfterUpdate[0]?.status}, paymentIdMP=${ticketAfterUpdate[0]?.paymentIdMP}`);
-
-      // Fallback: Tenta enviar WhatsApp agora, mas não bloqueia
-      if (ticketAfterUpdate[0]?.whatsapp_sent === 0) {
-        sendWhatsAppNotification({ ...ticket, amount })
-          .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
-          .catch(err => console.error('[WHATSAPP fallback] Erro:', err));
-      }
-
+      
+      // Disparo de WhatsApp sincronizado com a confirmação real
+      sendWhatsAppNotification({ ...ticket, amount })
+        .then(() => query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]))
+        .catch(err => console.error('[WHATSAPP] Erro no fluxo determinístico:', err));
     } else {
-      console.log(`[CREATE-PAYMENT] Salvando paymentIdMP ${paymentId} para ticket ${ticket.id} (status: ${paymentStatus})`);
-      const updateResult = await query(
+      console.log(`[DETERMINÍSTICO] Pagamento ${paymentId} criado com status: ${finalStatus}. Salvando vínculo.`);
+      await query(
         'UPDATE tickets SET paymentIdMP = ? WHERE LOWER(id) = LOWER(?)',
         [paymentId, ticket.id]
-      ) as any;
-      console.log(`[DEBUG CREATE] UPDATE paymentIdMP result: affectedRows=${updateResult.affectedRows}`);
-      // Verifica se realmente salvou
-      const ticketAfterUpdate = await query('SELECT id, status, paymentIdMP FROM tickets WHERE LOWER(id) = LOWER(?)', [ticket.id]) as any[];
-      console.log(`[DEBUG CREATE] Ticket DEPOIS do update: status=${ticketAfterUpdate[0]?.status}, paymentIdMP=${ticketAfterUpdate[0]?.paymentIdMP}`);
+      );
     }
 
     return NextResponse.json({
@@ -127,7 +118,7 @@ export async function POST(req: Request) {
       payment_id: paymentId,
       qr_code: qrCode,
       qr_code_base64: qrCodeBase64,
-      status: (paymentStatus === 'approved' || paymentStatus === 'authorized') ? 'approved' : 'pending'
+      status: isApproved ? 'approved' : 'pending'
     });
 
   } catch (error: any) {
