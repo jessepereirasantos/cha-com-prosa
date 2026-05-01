@@ -1,3 +1,4 @@
+// v3.0 - Arquitetura Determinística Final
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
 import { updateTicket } from '../../../lib/db';
