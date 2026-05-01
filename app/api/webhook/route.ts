@@ -15,46 +15,58 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    console.log(`[WEBHOOK] recebido: ${paymentId}`);
+    console.log(`[WEBHOOK] recebido id=${paymentId}`);
 
-    // Consulta API oficial
+    // 1. Consulta API oficial (Fonte da Verdade)
     const mpPayment = await getPaymentStatus(paymentId.toString());
     const status = mpPayment.status;
     const ticketId = mpPayment.external_reference;
     
-    // [WEBHOOK] status retornado
-    console.log(`[WEBHOOK] status retornado: ${status}`);
+    console.log(`[WEBHOOK] status confirmado=${status} | ticketId=${ticketId}`);
 
+    // 2. Se aprovado, executa fluxo de confirmação
     if (status === 'approved' || status === 'authorized') {
-      // [DB] atualização executada (Único ponto de escrita de status)
-      const updateResult = await query(
-        'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ? OR paymentIdMP = ?',
-        [paymentId.toString(), ticketId, paymentId.toString()]
-      ) as any;
+      
+      // Busca o ticket PRIMEIRO
+      const tickets = await query(
+        'SELECT * FROM tickets WHERE id = ? OR paymentIdMP = ?', 
+        [ticketId || '', paymentId.toString()]
+      ) as any[];
+      
+      const ticket = tickets[0];
 
-      if (updateResult.affectedRows > 0) {
-        console.log('[DB] atualização executada');
+      if (ticket) {
+        // [DB] atualizado com sucesso
+        await query(
+          'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
+          [paymentId.toString(), ticket.id]
+        );
+        console.log('[DB] atualizado com sucesso');
 
-        const rows = await query('SELECT * FROM tickets WHERE id = ?', [ticketId]) as any[];
-        const ticket = rows[0];
-
-        if (ticket && ticket.whatsapp_sent === 0) {
-          // [WHATSAPP] envio realizado
-          await sendWhatsAppNotification(ticket);
+        if (ticket.whatsapp_sent === 0) {
+          console.log('[WHATSAPP] disparo iniciado (background)');
+          
+          // Marca como enviado ANTES do disparo
           await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-          console.log('[WHATSAPP] envio realizado');
+          
+          // DISPARO SEM AWAIT (NÃO BLOQUEIA A RESPOSTA 200)
+          sendWhatsAppNotification({
+            ...ticket,
+            amount: mpPayment.transaction_amount || ticket.amount || 57.00
+          }).then(() => {
+            console.log('[WHATSAPP] sucesso no envio');
+          }).catch(waErr => {
+            console.error('[WHATSAPP] erro detalhado:', waErr.message);
+          });
         }
       }
     }
 
+    // RESPONDE 200 IMEDIATAMENTE (NÃO ESPERA O WHATSAPP)
     return NextResponse.json({ ok: true }, { status: 200 });
 
   } catch (error: any) {
-    console.error('[WEBHOOK] Erro:', error.message);
+    console.error('[WEBHOOK] Erro Crítico:', error.message);
     return NextResponse.json({ ok: true }, { status: 200 });
   }
-}
-
-export async function GET() {
-  return NextResponse.json({ message: "Webhook active" }, { status: 200 });
 }

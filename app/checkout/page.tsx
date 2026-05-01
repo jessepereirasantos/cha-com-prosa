@@ -47,12 +47,32 @@ export default function CheckoutPage() {
     resolver: zodResolver(formSchema),
   });
 
-  // POLLING: Verifica status do pagamento a cada 3 segundos (PIX e Cartão)
+  // 1. Recuperação Automática de Estado (DETERMINÍSTICO)
+  useEffect(() => {
+    const savedPaymentId = localStorage.getItem('active_payment_id');
+    const savedMethod = localStorage.getItem('active_payment_method');
+    
+    if (savedPaymentId && step === 1) {
+      if (savedMethod === 'pix') {
+        const savedPixData = localStorage.getItem('active_pix_data');
+        if (savedPixData) {
+          setPixData(JSON.parse(savedPixData));
+          setStep(2);
+        }
+      } else {
+        setCardPaymentId(savedPaymentId);
+        setStep(2);
+      }
+    }
+  }, [step]);
+
+  // 2. POLLING: Fonte Única de Verdade (API Direta)
   useEffect(() => {
     let interval: any;
-    const paymentId = pixData?.paymentId || cardPaymentId;
+    const paymentId = pixData?.paymentId || cardPaymentId || localStorage.getItem('active_payment_id');
 
     if (paymentId && step === 2) {
+      console.log(`[POLLING] Iniciado para ID: ${paymentId}`);
       interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/payment-status?id=${paymentId}`);
@@ -60,7 +80,10 @@ export default function CheckoutPage() {
 
           if (data.status === 'approved') {
             clearInterval(interval);
-            router.push('/confirmacao');
+            localStorage.removeItem('active_payment_id');
+            localStorage.removeItem('active_payment_method');
+            localStorage.removeItem('active_pix_data');
+            window.location.href = '/confirmacao';
           }
         } catch (err) {
           console.error('Polling error:', err);
@@ -71,7 +94,7 @@ export default function CheckoutPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [pixData, cardPaymentId, step, router]);
+  }, [pixData, cardPaymentId, step]);
 
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -188,6 +211,16 @@ export default function CheckoutPage() {
       if (paymentMethod === 'pix') {
         localStorage.setItem('last_ticket_id', result.id);
         localStorage.setItem('last_ticket_name', data.name);
+        
+        // Persistência Determinística para PIX
+        localStorage.setItem('active_payment_id', result.payment_id);
+        localStorage.setItem('active_payment_method', 'pix');
+        localStorage.setItem('active_pix_data', JSON.stringify({
+          paymentId: result.payment_id,
+          qrCode: result.qr_code,
+          qrCodeBase64: result.qr_code_base64
+        }));
+
         setPixData({
           paymentId: result.payment_id,
           qrCode: result.qr_code,
@@ -198,11 +231,16 @@ export default function CheckoutPage() {
         // Pagamento via cartão
         localStorage.setItem('last_ticket_id', result.id);
         localStorage.setItem('last_ticket_name', data.name);
+        
         if (result.status === 'approved') {
           // Aprovado imediatamente → Redireciona na hora
-          router.push('/confirmacao');
+          localStorage.removeItem('active_payment_id');
+          localStorage.removeItem('active_payment_method');
+          window.location.href = '/confirmacao';
         } else {
           // Em processamento (in_process) → faz polling igual ao PIX
+          localStorage.setItem('active_payment_id', result.payment_id);
+          localStorage.setItem('active_payment_method', 'card');
           setCardPaymentId(result.payment_id);
           setStep(2);
         }
