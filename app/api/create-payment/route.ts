@@ -12,6 +12,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 });
     }
 
+    // --- INÍCIO DO PORTEIRO DE VALIDAÇÃO DE CPF ---
+    if (!document) {
+      return NextResponse.json({ error: 'CPF é obrigatório' }, { status: 400 });
+    }
+    
+    const cleanDocument = document.replace(/\D/g, '');
+    
+    if (cleanDocument.length !== 11) {
+      return NextResponse.json({ error: 'CPF inválido. Certifique-se de digitar 11 números.' }, { status: 400 });
+    }
+
+    const existingTickets = await query(
+      "SELECT id FROM tickets WHERE document = ? AND status IN ('paid', 'used')",
+      [cleanDocument]
+    ) as any[];
+
+    if (existingTickets && existingTickets.length > 0) {
+      return NextResponse.json({ error: 'Já existe um ingresso confirmado vinculado a este CPF.' }, { status: 400 });
+    }
+    // --- FIM DO PORTEIRO ---
+
     // 1. Calcula o valor (único ponto de cálculo)
     let amount = 57;
     if (couponCode) {
@@ -26,7 +47,7 @@ export async function POST(req: Request) {
       name,
       email,
       phone,
-      document,
+      document: cleanDocument,
       paymentMethod
     });
 
@@ -39,7 +60,7 @@ export async function POST(req: Request) {
           id: ticket.id,
           name,
           email,
-          document,
+          document: cleanDocument,
           cardToken,
           paymentMethodId,
           installments: parseInt(installments) || 1,
@@ -50,7 +71,7 @@ export async function POST(req: Request) {
           id: ticket.id,
           name,
           email,
-          document,
+          document: cleanDocument,
           amount
         });
       }
