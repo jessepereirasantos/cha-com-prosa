@@ -79,10 +79,12 @@ export default function CheckoutPage() {
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, '');
     if (val.length > 11) val = val.slice(0, 11);
-    if (val.length > 2) val = `(${val.slice(0, 2)}) ${val.slice(2)}`;
-    if (val.length > 9) val = `${val.slice(0, 9)}-${val.slice(9)}`;
-    e.target.value = val;
-    setValue('phone', val);
+    // Formato correto: (11) 94672-1741
+    let formatted = val;
+    if (val.length > 2) formatted = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+    if (val.length > 7) formatted = `(${val.slice(0, 2)}) ${val.slice(2, 7)}-${val.slice(7)}`;
+    e.target.value = formatted;
+    setValue('phone', formatted);
   };
 
   const handleDocumentChange = (e: ChangeEvent<HTMLInputElement>) => {

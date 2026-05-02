@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
 import { query } from '../../../lib/mysql';
 import { sendWhatsAppNotification } from '../../../lib/whatsapp';
@@ -13,9 +13,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  // 2. DISPARA PROCESSAMENTO EM BACKGROUND (SEM AWAIT)
-  // Isso garante resposta <100ms para o Mercado Pago/Bancos
-  processPaymentInBackground(paymentId.toString());
+  // 2. USA after() DO NEXT.JS 15 — mantém a função viva após o return
+  // sem bloquear a resposta ao Mercado Pago
+  after(async () => {
+    await processPaymentInBackground(paymentId.toString());
+  });
 
   // 3. RESPONDE 200 OK IMEDIATAMENTE
   return NextResponse.json({ ok: true }, { status: 200 });
