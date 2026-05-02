@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 });
     }
 
-    // 1. Calcula o valor com base no cupom
+    // 1. Calcula o valor (único ponto de cálculo)
     let amount = 57;
     if (couponCode) {
       const couponRows = await query('SELECT discount FROM coupons WHERE code = ?', [couponCode.toUpperCase()]) as any[];
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Salva o ingresso no banco com status 'pending' inicial
+    // 2. Salva o ingresso no banco com status 'pending' (Garante o registro inicial)
     const ticket = await addTicket({
       name,
       email,
@@ -55,30 +55,29 @@ export async function POST(req: Request) {
         });
       }
     } catch (mpError: any) {
-      const errorMessage = mpError?.cause?.[0]?.description || mpError?.message || 'Erro ao processar pagamento no Mercado Pago';
+      const errorMessage = mpError?.cause?.[0]?.description || mpError?.message || 'Erro ao processar no Mercado Pago';
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     const paymentId = mpPayment.id?.toString();
-    const paymentStatus = mpPayment.status;
 
-    // Apenas vincula o ID do pagamento ao ticket no banco. 
-    // NÃO altera status para 'paid' e NÃO envia WhatsApp aqui.
+    // 4. Apenas vincula o ID do pagamento ao ticket e salva o valor final
     if (paymentId) {
-      await query('UPDATE tickets SET paymentIdMP = ? WHERE id = ?', [paymentId, ticket.id]);
+      await query('UPDATE tickets SET paymentIdMP = ?, amount = ? WHERE id = ?', [paymentId, amount, ticket.id]);
     }
 
+    // Retorna os dados necessários para o frontend (sem tentar processar status aqui)
     return NextResponse.json({
       success: true,
       paymentId: paymentId,
       ticketId: ticket.id,
       qr_code: mpPayment.point_of_interaction?.transaction_data?.qr_code,
       qr_code_base64: mpPayment.point_of_interaction?.transaction_data?.qr_code_base64,
-      status: paymentStatus // Repassa o status inicial para o frontend decidir o fluxo
+      status: mpPayment.status
     });
 
   } catch (error: any) {
     console.error('Create Payment Error:', error);
-    return NextResponse.json({ error: 'Erro técnico ao criar pagamento' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro técnico ao gerar cobrança' }, { status: 500 });
   }
 }

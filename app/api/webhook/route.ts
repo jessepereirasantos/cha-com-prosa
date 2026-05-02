@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { searchParams } = new URL(req.url);
     const body = await req.json().catch(() => ({}));
 
-    // [WEBHOOK] recebido
+    // [WEBHOOK] capturando ID do pagamento
     const paymentId = searchParams.get('data.id') || searchParams.get('id') || body.data?.id || body.id;
     
     if (!paymentId) {
@@ -17,17 +17,17 @@ export async function POST(req: Request) {
 
     console.log(`[WEBHOOK] recebido id=${paymentId}`);
 
-    // 1. Consulta API oficial (Fonte da Verdade)
+    // 1. Consulta API oficial (Fonte Única da Verdade)
     const mpPayment = await getPaymentStatus(paymentId.toString());
     const status = mpPayment.status;
     const ticketId = mpPayment.external_reference;
     
     console.log(`[WEBHOOK] status confirmado=${status} | ticketId=${ticketId}`);
 
-    // 2. Se aprovado, executa fluxo de confirmação
+    // 2. Se aprovado, executa o fluxo determinístico
     if (status === 'approved' || status === 'authorized') {
       
-      // Busca o ticket PRIMEIRO
+      // Busca o ticket (pelo ID ou pelo paymentIdMP vinculado na criação)
       const tickets = await query(
         'SELECT * FROM tickets WHERE id = ? OR paymentIdMP = ?', 
         [ticketId || '', paymentId.toString()]
@@ -36,37 +36,47 @@ export async function POST(req: Request) {
       const ticket = tickets[0];
 
       if (ticket) {
-        // [DB] atualizado com sucesso
+        // [DB] Atualização Atômica
         await query(
           'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
           [paymentId.toString(), ticket.id]
         );
         console.log('[DB] atualizado com sucesso');
 
+        // [WHATSAPP] Disparo com trava de duplicidade
         if (ticket.whatsapp_sent === 0) {
-          console.log('[WHATSAPP] disparo iniciado (background)');
+          console.log('[WHATSAPP] disparando gatilho...');
           
-          // Marca como enviado ANTES do disparo
+          // Marca como enviado ANTES para ser ultra-seguro contra race conditions
           await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
           
-          // DISPARO SEM AWAIT (NÃO BLOQUEIA A RESPOSTA 200)
-          sendWhatsAppNotification({
-            ...ticket,
-            amount: mpPayment.transaction_amount || ticket.amount || 57.00
-          }).then(() => {
-            console.log('[WHATSAPP] sucesso no envio');
-          }).catch(waErr => {
-            console.error('[WHATSAPP] erro detalhado:', waErr.message);
-          });
+          // Aguarda o disparo para garantir que a Vercel não corte a execução,
+          // mas o bot é rápido o suficiente para não estourar o timeout do MP.
+          try {
+            await sendWhatsAppNotification({
+              ...ticket,
+              amount: mpPayment.transaction_amount || ticket.amount || 57.00
+            });
+            console.log('[WHATSAPP] enviado com sucesso');
+          } catch (waErr) {
+            console.error('[WHATSAPP] falha no envio:', waErr.message);
+          }
         }
+      } else {
+        console.warn(`[WEBHOOK] Ticket não encontrado para paymentId ${paymentId}`);
       }
     }
 
-    // RESPONDE 200 IMEDIATAMENTE (NÃO ESPERA O WHATSAPP)
+    // RESPONDE 200 OK (Obrigatório para o MP parar de reenviar)
     return NextResponse.json({ ok: true }, { status: 200 });
 
   } catch (error: any) {
     console.error('[WEBHOOK] Erro Crítico:', error.message);
+    // Sempre responde 200 para evitar que o Mercado Pago bloqueie o endpoint por erros repetidos
     return NextResponse.json({ ok: true }, { status: 200 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ message: "Webhook Motor is active" }, { status: 200 });
 }
