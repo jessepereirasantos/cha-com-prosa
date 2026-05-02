@@ -77,8 +77,10 @@ export async function POST(req: Request) {
         });
       }
     } catch (mpError: any) {
+      // Falha antes da criacao do pagamento (ex: erro de validacao do Mercado Pago)
+      await query("UPDATE tickets SET status = 'rejected' WHERE id = ?", [ticket.id]);
       const errorMessage = mpError?.cause?.[0]?.description || mpError?.message || 'Erro ao processar no Mercado Pago';
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
     const paymentId = mpPayment.id?.toString();
@@ -86,6 +88,16 @@ export async function POST(req: Request) {
     // 4. Apenas vincula o ID do pagamento ao ticket e salva o valor final
     if (paymentId) {
       await query('UPDATE tickets SET paymentIdMP = ?, amount = ? WHERE id = ?', [paymentId, amount, ticket.id]);
+
+      // Aplica as regras de negocio restritas ao cartao
+      if (paymentMethod === 'card') {
+        if (mpPayment.status === 'rejected') {
+          await query("UPDATE tickets SET status = 'rejected' WHERE id = ?", [ticket.id]);
+          return NextResponse.json({ error: 'Pagamento recusado pela operadora. Verifique os dados ou tente outro cartão.' }, { status: 400 });
+        } else if (mpPayment.status === 'approved') {
+          await query("UPDATE tickets SET status = 'paid' WHERE id = ?", [ticket.id]);
+        }
+      }
     }
 
     // Retorna os dados necessários para o frontend (sem tentar processar status aqui)

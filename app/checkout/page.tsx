@@ -188,14 +188,15 @@ export default function CheckoutPage() {
         });
         setStep(2);
       } else {
-        if (result.status === 'approved' || result.status === 'in_process' || result.status === 'pending') {
-          // Salva e redireciona imediatamente sem travar o usuário
+        if (result.status === 'approved') {
+          // Salva e redireciona imediatamente
           if (result.ticketId) localStorage.setItem('last_ticket_id', result.ticketId);
           window.location.href = '/confirmacao';
-        } else if (result.status === 'rejected') {
-          throw new Error('Pagamento recusado pela operadora. Verifique os dados ou tente outro cartão.');
+        } else if (result.status === 'in_process' || result.status === 'pending') {
+          alert('Seu pagamento está em análise pela operadora de crédito. Assim que for aprovado, você receberá o ingresso automaticamente no WhatsApp informado.');
+          window.location.href = '/';
         } else {
-          throw new Error(`Falha na aprovação do cartão (Status: ${result.status}). Tente novamente.`);
+          throw new Error('Pagamento recusado pela operadora. Verifique os dados ou tente outro cartão.');
         }
       }
 

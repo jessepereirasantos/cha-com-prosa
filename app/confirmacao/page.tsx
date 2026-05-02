@@ -28,6 +28,10 @@ export default function ConfirmationPage() {
         const data = await res.json();
         
         if (data && !data.error) {
+          if (data.status !== 'paid') {
+            window.location.href = '/';
+            return;
+          }
           setParticipantData({
             name: data.name,
             code: data.code,
