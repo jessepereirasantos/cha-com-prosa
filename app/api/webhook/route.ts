@@ -58,7 +58,7 @@ export async function POST(req: Request) {
               amount: mpPayment.transaction_amount || ticket.amount || 57.00
             });
             console.log('[WHATSAPP] enviado com sucesso');
-          } catch (waErr) {
+          } catch (waErr: any) {
             console.error('[WHATSAPP] falha no envio:', waErr.message);
           }
         }
