@@ -78,7 +78,7 @@ async function processPaymentInBackground(paymentId: string) {
     // ─── DISPARO DO WHATSAPP (apenas uma vez) ─────────────────────────────────
     const checkSent = await query('SELECT whatsapp_sent FROM tickets WHERE id = ?', [ticket.id]) as any[];
 
-    if (checkSent[0]?.whatsapp_sent === 0) {
+    if (!checkSent[0]?.whatsapp_sent) {
       console.log(`[WHATSAPP] Enviando para: ${ticket.phone} | Nome: ${ticket.name}`);
 
       // Marca como enviado ANTES para evitar race condition

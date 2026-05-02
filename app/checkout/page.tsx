@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const [showTerms, setShowTerms] = useState(false);
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string; paymentId: string } | null>(null);
   const [cardPaymentId, setCardPaymentId] = useState<string | null>(null);
+  const [ticketId, setTicketId] = useState<string | null>(null);
 
   // Coupon States
   const [couponCode, setCouponCode] = useState('');
@@ -60,7 +61,8 @@ export default function CheckoutPage() {
 
           if (data.status === 'approved') {
             clearInterval(interval);
-            // REDIRECIONAMENTO BRUTAL PARA GARANTIR SUCESSO
+            // Salva o ticketId para a página de confirmação buscar os dados reais
+            if (ticketId) localStorage.setItem('last_ticket_id', ticketId);
             window.location.href = '/confirmacao';
           }
         } catch (err) {
@@ -163,6 +165,9 @@ export default function CheckoutPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Erro ao processar pagamento');
 
+      // Persiste o ticketId para uso no redirect
+      if (result.ticketId) setTicketId(result.ticketId);
+
       if (paymentMethod === 'pix') {
         setPixData({
           paymentId: result.paymentId,
@@ -172,6 +177,8 @@ export default function CheckoutPage() {
         setStep(2);
       } else {
         if (result.status === 'approved') {
+          // Cartão aprovado na hora: salva e redireciona
+          if (result.ticketId) localStorage.setItem('last_ticket_id', result.ticketId);
           window.location.href = '/confirmacao';
         } else {
           setCardPaymentId(result.paymentId);
