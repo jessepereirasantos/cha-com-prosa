@@ -33,37 +33,57 @@ async function processPaymentInBackground(paymentId: string) {
       return;
     }
 
-    // BUSCA TICKET REAL NO BANCO
-    // Usamos o paymentIdMP como âncora de verdade
-    const tickets = await query(
-      'SELECT * FROM tickets WHERE paymentIdMP = ?', 
+    // ─── PASSO 1: Busca por paymentIdMP ───────────────────────────────────────
+    let tickets = await query(
+      'SELECT * FROM tickets WHERE paymentIdMP = ?',
       [paymentId]
     ) as any[];
 
+    // ─── PASSO 2: Fallback por external_reference (id do ticket) ──────────────
     if (tickets.length === 0) {
-      console.warn(`[WEBHOOK] Alerta: Nenhum ticket encontrado no banco para paymentIdMP: ${paymentId}`);
+      const externalRef = mpPayment.external_reference;
+      console.log(`[WEBHOOK] Não encontrado por paymentIdMP. Tentando external_reference: ${externalRef}`);
+
+      if (externalRef) {
+        tickets = await query(
+          'SELECT * FROM tickets WHERE id = ?',
+          [externalRef]
+        ) as any[];
+
+        // Atualização de segurança: vincula o paymentIdMP ao ticket encontrado
+        if (tickets.length > 0) {
+          await query(
+            'UPDATE tickets SET paymentIdMP = ? WHERE id = ?',
+            [paymentId, tickets[0].id]
+          );
+          console.log(`[DB] paymentIdMP vinculado ao ticket ${tickets[0].id} via external_reference`);
+        }
+      }
+    }
+
+    if (tickets.length === 0) {
+      console.error(`[WEBHOOK] CRÍTICO: Ticket não encontrado por paymentIdMP nem por external_reference. paymentId=${paymentId}`);
       return;
     }
 
     const ticket = tickets[0];
     console.log(`[WEBHOOK] Ticket encontrado! Cliente: ${ticket.name} | Código: ${ticket.code}`);
 
-    // ATUALIZA STATUS NO BANCO
+    // ─── ATUALIZA STATUS NO BANCO ──────────────────────────────────────────────
     if (ticket.status !== 'paid') {
       await query('UPDATE tickets SET status = "paid" WHERE id = ?', [ticket.id]);
       console.log(`[DB] Status do Ticket ${ticket.id} atualizado para 'paid'`);
     }
 
-    // DISPARO DO WHATSAPP (Garantindo que envie apenas uma vez)
-    // Buscamos se já foi enviado para evitar duplicidade em retentativas do webhook
+    // ─── DISPARO DO WHATSAPP (apenas uma vez) ─────────────────────────────────
     const checkSent = await query('SELECT whatsapp_sent FROM tickets WHERE id = ?', [ticket.id]) as any[];
-    
+
     if (checkSent[0]?.whatsapp_sent === 0) {
       console.log(`[WHATSAPP] Enviando para: ${ticket.phone} | Nome: ${ticket.name}`);
-      
-      // Marcar como enviado ANTES para evitar race condition
+
+      // Marca como enviado ANTES para evitar race condition
       await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-      
+
       try {
         await sendWhatsAppNotification({
           ...ticket,
@@ -72,7 +92,7 @@ async function processPaymentInBackground(paymentId: string) {
         console.log(`[WHATSAPP] Sucesso no disparo para ${ticket.name}`);
       } catch (waErr: any) {
         console.error(`[WHATSAPP] Erro no envio: ${waErr.message}`);
-        // Resetamos se falhou para tentar novamente no próximo sinal do webhook
+        // Reseta para tentar novamente na próxima retentativa do webhook
         await query('UPDATE tickets SET whatsapp_sent = 0 WHERE id = ?', [ticket.id]);
       }
     } else {
