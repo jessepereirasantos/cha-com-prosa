@@ -4,69 +4,82 @@ import { query } from '../../../lib/mysql';
 import { sendWhatsAppNotification } from '../../../lib/whatsapp';
 
 export async function POST(req: Request) {
-  // [WEBHOOK] INÍCIO - RESPOSTA IMEDIATA É PRIORIDADE
-  try {
-    const { searchParams } = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+  // 1. EXTRAÇÃO RELÂMPAGO
+  const { searchParams } = new URL(req.url);
+  const body = await req.json().catch(() => ({}));
+  const paymentId = searchParams.get('data.id') || searchParams.get('id') || body.data?.id || body.id;
 
-    const paymentId = searchParams.get('data.id') || searchParams.get('id') || body.data?.id || body.id;
+  if (!paymentId) {
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
+  // 2. DISPARA PROCESSAMENTO EM BACKGROUND (SEM AWAIT)
+  // Isso garante resposta <100ms para o Mercado Pago/Bancos
+  processPaymentInBackground(paymentId.toString());
+
+  // 3. RESPONDE 200 OK IMEDIATAMENTE
+  return NextResponse.json({ ok: true }, { status: 200 });
+}
+
+// FUNÇÃO DE PROCESSAMENTO DESACOPLADA
+async function processPaymentInBackground(paymentId: string) {
+  try {
+    console.log(`[WEBHOOK] Iniciando processamento background para ID: ${paymentId}`);
     
-    if (!paymentId) {
-      return NextResponse.json({ ok: true }, { status: 200 });
+    // Busca status no Mercado Pago
+    const mpPayment = await getPaymentStatus(paymentId);
+    if (!mpPayment || (mpPayment.status !== 'approved' && mpPayment.status !== 'authorized')) {
+      console.log(`[WEBHOOK] Pagamento ${paymentId} ainda não aprovado: ${mpPayment?.status}`);
+      return;
     }
 
-    console.log(`[WEBHOOK] recebido id=${paymentId}`);
+    // BUSCA TICKET REAL NO BANCO
+    // Usamos o paymentIdMP como âncora de verdade
+    const tickets = await query(
+      'SELECT * FROM tickets WHERE paymentIdMP = ?', 
+      [paymentId]
+    ) as any[];
 
-    // EXECUTAR PROCESSAMENTO EM BACKGROUND (PADRÃO VERCEL)
-    // Para garantir que o Mercado Pago não dê timeout, processamos e respondemos o mais rápido possível.
+    if (tickets.length === 0) {
+      console.warn(`[WEBHOOK] Alerta: Nenhum ticket encontrado no banco para paymentIdMP: ${paymentId}`);
+      return;
+    }
+
+    const ticket = tickets[0];
+    console.log(`[WEBHOOK] Ticket encontrado! Cliente: ${ticket.name} | Código: ${ticket.code}`);
+
+    // ATUALIZA STATUS NO BANCO
+    if (ticket.status !== 'paid') {
+      await query('UPDATE tickets SET status = "paid" WHERE id = ?', [ticket.id]);
+      console.log(`[DB] Status do Ticket ${ticket.id} atualizado para 'paid'`);
+    }
+
+    // DISPARO DO WHATSAPP (Garantindo que envie apenas uma vez)
+    // Buscamos se já foi enviado para evitar duplicidade em retentativas do webhook
+    const checkSent = await query('SELECT whatsapp_sent FROM tickets WHERE id = ?', [ticket.id]) as any[];
     
-    const processWebhook = async () => {
+    if (checkSent[0]?.whatsapp_sent === 0) {
+      console.log(`[WHATSAPP] Enviando para: ${ticket.phone} | Nome: ${ticket.name}`);
+      
+      // Marcar como enviado ANTES para evitar race condition
+      await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+      
       try {
-        const mpPayment = await getPaymentStatus(paymentId.toString());
-        const status = mpPayment.status;
-        const ticketId = mpPayment.external_reference;
-
-        if (status === 'approved' || status === 'authorized') {
-          const tickets = await query(
-            'SELECT * FROM tickets WHERE id = ? OR paymentIdMP = ?', 
-            [ticketId || '', paymentId.toString()]
-          ) as any[];
-          
-          const ticket = tickets[0];
-
-          if (ticket && ticket.status !== 'paid') {
-            // [DB] ATUALIZAÇÃO RÁPIDA
-            await query(
-              'UPDATE tickets SET status = "paid", paymentIdMP = ? WHERE id = ?',
-              [paymentId.toString(), ticket.id]
-            );
-            console.log(`[DB] Ticket ${ticket.id} marcado como pago`);
-
-            // [WHATSAPP] DISPARO SEM BLOQUEAR O FLUXO PRINCIPAL
-            if (ticket.whatsapp_sent === 0) {
-              await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-              
-              // Fire and forget (Vercel manterá a execução por alguns segundos após a resposta se a função for rápida)
-              sendWhatsAppNotification({
-                ...ticket,
-                amount: mpPayment.transaction_amount || ticket.amount || 57.00
-              }).catch(e => console.error('[WHATSAPP] erro no envio:', e.message));
-            }
-          }
-        }
-      } catch (err: any) {
-        console.error('[WEBHOOK] Erro no processamento:', err.message);
+        await sendWhatsAppNotification({
+          ...ticket,
+          amount: mpPayment.transaction_amount || 57.00
+        });
+        console.log(`[WHATSAPP] Sucesso no disparo para ${ticket.name}`);
+      } catch (waErr: any) {
+        console.error(`[WHATSAPP] Erro no envio: ${waErr.message}`);
+        // Resetamos se falhou para tentar novamente no próximo sinal do webhook
+        await query('UPDATE tickets SET whatsapp_sent = 0 WHERE id = ?', [ticket.id]);
       }
-    };
-
-    // Iniciamos o processamento mas NÃO aguardamos o WhatsApp para responder
-    // No entanto, aguardamos o status básico do MP para garantir integridade.
-    await processWebhook();
-
-    return NextResponse.json({ ok: true }, { status: 200 });
+    } else {
+      console.log(`[WHATSAPP] Notificação já enviada anteriormente para o ticket ${ticket.id}`);
+    }
 
   } catch (error: any) {
-    console.error('[WEBHOOK] Erro Crítico:', error.message);
-    return NextResponse.json({ ok: true }, { status: 200 });
+    console.error(`[WEBHOOK ERROR] Falha no processamento background: ${error.message}`);
   }
 }
