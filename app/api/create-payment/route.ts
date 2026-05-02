@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     let mpPayment;
     try {
       if (paymentMethod === 'card') {
-        const { cardToken, paymentMethodId, installments } = body;
+        const { cardToken, paymentMethodId, installments, issuerId } = body;
         mpPayment = await createCardPayment({
           id: ticket.id,
           name,
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
           document: cleanDocument,
           cardToken,
           paymentMethodId,
+          issuerId,
           installments: parseInt(installments) || 1,
           amount
         });

@@ -140,6 +140,15 @@ export default function CheckoutPage() {
         const bin = cardData.number.replace(/\s/g, '').slice(0, 6);
         const [month, year] = cardData.expiry.split('/');
         
+        const paymentMethods = await mp.getPaymentMethods({ bin });
+        if (!paymentMethods || paymentMethods.results.length === 0) {
+          throw new Error('Cartão não suportado ou inválido.');
+        }
+        const dynamicPaymentMethodId = paymentMethods.results[0].id;
+        
+        const issuers = await mp.getIssuers({ paymentMethodId: dynamicPaymentMethodId, bin });
+        const dynamicIssuerId = issuers && issuers.length > 0 ? issuers[0].id : null;
+
         const cardTokenResponse = await mp.createCardToken({
           cardNumber: cardData.number.replace(/\s/g, ''),
           cardholderName: cardData.name,
@@ -152,7 +161,8 @@ export default function CheckoutPage() {
 
         if (cardTokenResponse.id) {
           payload.cardToken = cardTokenResponse.id;
-          payload.paymentMethodId = 'master'; // Fallback ou identificação via SDK se necessário
+          payload.paymentMethodId = dynamicPaymentMethodId;
+          if (dynamicIssuerId) payload.issuerId = dynamicIssuerId;
         } else {
           throw new Error('Dados do cartão inválidos.');
         }
@@ -336,7 +346,7 @@ export default function CheckoutPage() {
         {step > 1 && (
           <motion.div className="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-6">
             <div className="bg-white rounded-3xl p-12 max-w-md w-full text-center shadow-2xl border border-rose-100">
-              {step === 2 && (
+              {step === 2 && paymentMethod === 'pix' && (
                 <div className="space-y-6">
                   <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto text-primary mb-4"><QrCode size={32} /></div>
                   <h2 className="text-2xl font-serif text-primary font-bold">Escaneie o QR Code</h2>
@@ -346,6 +356,19 @@ export default function CheckoutPage() {
                     <button onClick={() => { navigator.clipboard.writeText(pixData?.qrCode || ''); alert('Código copiado!'); }} className="bg-primary text-white px-4 py-2 rounded-lg text-[10px] font-bold">Copiar</button>
                   </div>
                   <p className="text-[10px] font-bold text-stone-400 uppercase animate-pulse">Aguardando confirmação do banco...</p>
+                </div>
+              )}
+              {step === 2 && paymentMethod === 'card' && (
+                <div className="space-y-6 text-center">
+                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-blue-500 mb-4">
+                    <CreditCard size={32} />
+                  </div>
+                  <h2 className="text-2xl font-serif text-blue-600 font-bold">Pagamento em Análise</h2>
+                  <p className="text-stone-600 text-sm mt-4">Estamos processando seu cartão de forma segura. Isso leva alguns segundos.</p>
+                  <div className="mt-8">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+                  </div>
+                  <p className="text-[10px] font-bold text-stone-400 uppercase mt-8 animate-pulse">Aguardando aprovação da operadora...</p>
                 </div>
               )}
             </div>
