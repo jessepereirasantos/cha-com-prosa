@@ -19,17 +19,19 @@ export async function sendWhatsAppNotification(ticket: any) {
   const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
 
   try {
-    console.log(`[WHATSAPP] Enviando gatilho purchase_completed para: ${phoneFormatted}`);
+    console.log(`[WHATSAPP] Enviando mensagem de compra para: ${phoneFormatted}`);
     const response = await axios.post(
-      `${baseUrl}/api/triggers/create`,
+      `${baseUrl}/api/events/purchase`,
       {
-        instance_id: 1,
+        name: ticket.name,
         phone: phoneFormatted,
-        event: "purchase_completed",
+        product: "Ingresso Chá com Prosa",
+        value: ticket.amount || 57.00,
         data: {
-          customer_name: ticket.name,
-          product_name: "Ingresso Chá com Prosa",
-          amount: ticket.amount || 57.00
+          ticket_id: ticket.id,
+          ticket_code: ticket.id.slice(-6).toUpperCase(),
+          email: ticket.email,
+          ticket_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://chacomprosa.iadeeloha.com.br'}/api/generate-ticket?id=${ticket.id}`
         }
       },
       {
@@ -40,9 +42,9 @@ export async function sendWhatsAppNotification(ticket: any) {
         timeout: 5000
       }
     );
-    console.log('[WHATSAPP] gatilho enviado com sucesso');
+    console.log('[WHATSAPP] Sucesso no envio');
     return response.data;
   } catch (error: any) {
-    console.error(`[WHATSAPP] Erro no gatilho: ${error?.response?.data?.message || error.message}`);
+    console.error(`[WHATSAPP] Erro ao enviar: ${error?.response?.data?.message || error.message}`);
   }
 }
