@@ -72,6 +72,8 @@ export async function createCardPayment(ticketData: {
       external_reference: ticketData.id,
       payer: {
         email: ticketData.email,
+        first_name: ticketData.name.split(' ')[0],
+        last_name: ticketData.name.split(' ').slice(1).join(' ') || 'Participante',
         identification: {
           type: 'CPF',
           number: (ticketData.document || '').replace(/\D/g, ''),

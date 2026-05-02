@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
 import { query } from '../../../lib/mysql';
 import { sendWhatsAppNotification } from '../../../lib/whatsapp';
@@ -13,13 +13,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  // 2. USA after() DO NEXT.JS 15 — mantém a função viva após o return
-  // sem bloquear a resposta ao Mercado Pago
-  after(async () => {
-    await processPaymentInBackground(paymentId.toString());
-  });
+  // 2. PROCESSA O PAGAMENTO (await garante a execução no cPanel/HostGator)
+  // O servidor será obrigado a esperar o WhatsApp ser disparado ANTES de fechar a conexão
+  await processPaymentInBackground(paymentId.toString());
 
-  // 3. RESPONDE 200 OK IMEDIATAMENTE
+  // 3. RESPONDE 200 OK AO MERCADO PAGO
   return NextResponse.json({ ok: true }, { status: 200 });
 }
 
