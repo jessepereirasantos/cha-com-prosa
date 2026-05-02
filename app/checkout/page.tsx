@@ -188,13 +188,14 @@ export default function CheckoutPage() {
         });
         setStep(2);
       } else {
-        if (result.status === 'approved') {
-          // Cartão aprovado na hora: salva e redireciona
+        if (result.status === 'approved' || result.status === 'in_process' || result.status === 'pending') {
+          // Salva e redireciona imediatamente sem travar o usuário
           if (result.ticketId) localStorage.setItem('last_ticket_id', result.ticketId);
           window.location.href = '/confirmacao';
+        } else if (result.status === 'rejected') {
+          throw new Error('Pagamento recusado pela operadora. Verifique os dados ou tente outro cartão.');
         } else {
-          setCardPaymentId(result.paymentId);
-          setStep(2);
+          throw new Error(`Falha na aprovação do cartão (Status: ${result.status}). Tente novamente.`);
         }
       }
 
@@ -358,19 +359,7 @@ export default function CheckoutPage() {
                   <p className="text-[10px] font-bold text-stone-400 uppercase animate-pulse">Aguardando confirmação do banco...</p>
                 </div>
               )}
-              {step === 2 && paymentMethod === 'card' && (
-                <div className="space-y-6 text-center">
-                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-blue-500 mb-4">
-                    <CreditCard size={32} />
-                  </div>
-                  <h2 className="text-2xl font-serif text-blue-600 font-bold">Pagamento em Análise</h2>
-                  <p className="text-stone-600 text-sm mt-4">Estamos processando seu cartão de forma segura. Isso leva alguns segundos.</p>
-                  <div className="mt-8">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
-                  </div>
-                  <p className="text-[10px] font-bold text-stone-400 uppercase mt-8 animate-pulse">Aguardando aprovação da operadora...</p>
-                </div>
-              )}
+
             </div>
           </motion.div>
         )}
