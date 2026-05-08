@@ -59,7 +59,7 @@ export default function ConfirmationPage() {
         <div className="max-w-[1200px] mx-auto w-full px-4 sm:px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3 group">
              <Image 
-              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA" 
+              src="/images/logo.png" 
               alt="Logo" 
               width={32} 
               height={32} 

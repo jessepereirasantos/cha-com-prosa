@@ -32,12 +32,11 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto w-full flex justify-between items-center px-4 sm:px-6 py-2">
           <div className="flex items-center gap-2 shrink-0">
             <Image
-              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+              src="/images/logo.png"
               alt="Chá com Prosa"
               width={60}
               height={60}
               className="h-12 sm:h-16 w-auto"
-              referrerPolicy="no-referrer"
             />
             <span className="font-serif text-lg sm:text-2xl font-bold italic text-stone-700 whitespace-nowrap">Chá com Prosa</span>
           </div>
@@ -152,12 +151,11 @@ export default function Home() {
           >
             <div className="relative w-full max-w-md">
               <Image
-                src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+                src="/images/logo.png"
                 alt="Chá com Prosa Logo"
                 width={500}
                 height={500}
                 className="w-full h-auto drop-shadow-2xl"
-                referrerPolicy="no-referrer"
               />
             </div>
           </motion.div>
@@ -242,12 +240,11 @@ export default function Home() {
             <div className="relative group">
               <div className="absolute -inset-4 border border-primary/20 rounded-xl transition-all group-hover:inset-0"></div>
               <Image
-                src="https://lh3.googleusercontent.com/aida/ADBb0uhcMKvexsnSmfXgWpCroWTo2FKpTJ_quo8aCReTGFBuC-YuEmgRJnBcO2UWW4qV7vzpwNnpZujvFoA1tpm4MvyhNIl4g7ZkYNVDTWAgDEPZo4UP2JvGGbKcaaF-PWCizXB_Hletw5yd3WYGgXCxQrwRty4IXtx79nHriIXJk9eKFksY56DiS_ksLMV1aqtbgsMBsknBVR3jPmqzY_rdxZu5KuWOwm2rzvYyrpl2rtB0ERmiJO0sg8HmVEP4JcN4GkLgoEWcEiRqig"
+                src="/images/palestrante.jpg"
                 alt="Erika Gomes"
                 width={600}
                 height={500}
                 className="relative rounded-xl shadow-xl w-full h-[500px] object-cover"
-                referrerPolicy="no-referrer"
               />
               <div className="absolute -bottom-6 -right-6 bg-primary p-6 rounded-lg text-white shadow-lg hidden md:block">
                 <p className="font-serif italic text-lg text-on-primary text-white">&quot;O cuidado começa no olhar para si.&quot;</p>
@@ -417,12 +414,11 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto w-full px-6 text-center space-y-8">
           <div className="flex flex-col items-center gap-4">
             <Image
-              src="https://lh3.googleusercontent.com/aida/ADBb0ugI_ktMZqEiaKdWAeMkUov7eIVNbjiUEycPETPVbafa1UORo14_3FTl2u8q_3RIDSUl-mZlNeRG9QXSw-cfy7X3YbcaIKnSfc4e9bR-Hjs9XbqZCz8Ln_4WDdDXgigu7l4z2v9uA19YbeWwZEfcVZDZGZi-3tw9kpPzGGpjXQoJFP6gNze818UwnLVb6X6Wth4r3hRPwbZTRITrtfx_P7fRBnTSAhMmcDTeGhJe2ZuCuRkYvOceWiEDouxkGf8CgQmKfoWWV8xskA"
+              src="/images/logo.png"
               alt="Chá com Prosa"
               width={60}
               height={60}
               className="h-12 w-auto"
-              referrerPolicy="no-referrer"
             />
             <div className="flex gap-8">
               <button

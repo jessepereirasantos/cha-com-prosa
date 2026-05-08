@@ -212,6 +212,13 @@ export default function CheckoutPage() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-rose-100 sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto w-full px-6 py-6 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
+            <Image 
+              src="/images/logo.png" 
+              alt="Logo" 
+              width={32} 
+              height={32} 
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-2xl font-serif text-primary font-bold italic">Chá com Prosa</span>
           </Link>
           <div className="text-[10px] uppercase font-bold tracking-widest text-primary/60">
