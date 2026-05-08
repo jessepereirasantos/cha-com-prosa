@@ -75,11 +75,16 @@ async function processPaymentInBackground(paymentId: string) {
       console.log(`[DB] Status do Ticket ${ticket.id} atualizado para 'paid'`);
     }
 
-    // ─── DISPARO DO WHATSAPP (apenas uma vez) ─────────────────────────────────
-    const checkSent = await query('SELECT whatsapp_sent FROM tickets WHERE id = ?', [ticket.id]) as any[];
+    // ─── DISPARO DO WHATSAPP com LOCK ATÔMICO ───────────────────────────────
+    // Tenta obter lock atômico para este ticket
+    const lockResult = await query(
+      'UPDATE tickets SET whatsapp_sent = 1 WHERE id = ? AND whatsapp_sent = 0',
+      [ticket.id]
+    ) as any;
 
-    if (!checkSent[0]?.whatsapp_sent) {
-      console.log(`[WHATSAPP] Tentando disparo para: ${ticket.phone}`);
+    // Verifica se conseguiu o lock (afetou alguma linha)
+    if (lockResult.affectedRows > 0) {
+      console.log(`[WHATSAPP] Lock obtido para ticket ${ticket.id}. Enviando WhatsApp...`);
 
       try {
         const result = await sendWhatsAppNotification({
@@ -88,16 +93,19 @@ async function processPaymentInBackground(paymentId: string) {
         });
         
         if (result) {
-          await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-          console.log(`[WHATSAPP] Sucesso e banco atualizado para ${ticket.name}`);
+          console.log(`[WHATSAPP] Sucesso no envio para ${ticket.name}`);
         } else {
-          console.error(`[WHATSAPP] Bot retornou erro ou timeout para ${ticket.name}`);
+          // Se falhou, libera o lock para tentativas futuras
+          await query('UPDATE tickets SET whatsapp_sent = 0 WHERE id = ?', [ticket.id]);
+          console.error(`[WHATSAPP] Falha no envio, lock liberado para ${ticket.name}`);
         }
       } catch (waErr: any) {
-        console.error(`[WHATSAPP] Erro crítico no envio: ${waErr.message}`);
+        // Se deu erro, libera o lock para tentativas futuras
+        await query('UPDATE tickets SET whatsapp_sent = 0 WHERE id = ?', [ticket.id]);
+        console.error(`[WHATSAPP] Erro crítico no envio, lock liberado: ${waErr.message}`);
       }
     } else {
-      console.log(`[WHATSAPP] Notificação já enviada anteriormente para o ticket ${ticket.id}`);
+      console.log(`[WHATSAPP] Outro processo já está tratando do ticket ${ticket.id}`);
     }
 
   } catch (error: any) {
