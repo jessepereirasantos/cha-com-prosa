@@ -42,9 +42,10 @@ async function createTrigger(req, res) {
       return res.status(400).json({ error: 'instance_id, phone e event são obrigatórios' });
     }
 
-    // Verificar se instância existe e pertence ao cliente
+    // Verificar se instância existe
+    // Nota: a tabela instances não possui coluna is_active — validação real é feita pelo Baileys
     const [instances] = await pool.query(
-      'SELECT * FROM instances WHERE id = ? AND is_active = 1',
+      'SELECT * FROM instances WHERE id = ?',
       [instance_id]
     );
 
