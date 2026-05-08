@@ -8,8 +8,10 @@ export async function GET() {
     ) as any[];
 
     const html = `
-      <html>
+      <!DOCTYPE html>
+      <html lang="pt-br">
         <head>
+          <meta charset="UTF-8">
           <title>Auditoria de Vendas - Chá com Prosa</title>
           <style>
             body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
