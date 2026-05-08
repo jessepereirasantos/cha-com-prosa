@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     const status = mpPayment.status;
     const isApproved = status === 'approved' || status === 'authorized';
 
-    // 2. REDUNDÂNCIA: Se aprovado, garante que o banco e o WhatsApp foram processados
+    // 2. ATUALIZAÇÃO DO BANCO: Se aprovado, apenas atualiza status (WEBHOOK cuida do WhatsApp)
     if (isApproved) {
       // Busca o ticket no banco
       const tickets = await query(
@@ -37,25 +37,7 @@ export async function GET(req: Request) {
         // Atualiza status se ainda não estiver como pago
         if (ticket.status !== 'paid') {
           await query('UPDATE tickets SET status = "paid" WHERE id = ?', [ticket.id]);
-          console.log(`[POLLING REDUNDANCY] Status atualizado para 'paid' para o ticket ${ticket.id}`);
-        }
-
-        // Tenta enviar WhatsApp se ainda não foi enviado
-        if (!ticket.whatsapp_sent) {
-          console.log(`[POLLING REDUNDANCY] Tentando disparo de WhatsApp para ${ticket.name}`);
-          try {
-            const waResult = await sendWhatsAppNotification({
-              ...ticket,
-              amount: mpPayment.transaction_amount || 57.00
-            });
-
-            if (waResult) {
-              await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
-              console.log(`[POLLING REDUNDANCY] WhatsApp enviado com sucesso via Polling`);
-            }
-          } catch (waErr: any) {
-            console.error(`[POLLING REDUNDANCY] Falha no disparo de WhatsApp:`, waErr.message);
-          }
+          console.log(`[POLLING] Status atualizado para 'paid' para o ticket ${ticket.id}`);
         }
       }
     }

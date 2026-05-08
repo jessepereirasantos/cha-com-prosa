@@ -35,17 +35,7 @@ export async function sendWhatsAppNotification(ticket: any) {
     return null;
   }
 
-  // Verificar se já foi enviado nas últimas 2 horas
-  const recentSuccess = await query(
-    'SELECT whatsapp_sent FROM tickets WHERE id = ?',
-    [ticket.id]
-  ) as any[];
   
-  if (recentSuccess[0]?.whatsapp_sent) {
-    console.log(`[WHATSAPP] WhatsApp já enviado para ticket ${ticket.id}`);
-    return null;
-  }
-
   const phone = ticket.phone.replace(/\D/g, '');
   const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
 
