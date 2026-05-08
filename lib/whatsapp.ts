@@ -35,14 +35,14 @@ export async function sendWhatsAppNotification(ticket: any) {
     return null;
   }
 
-  // Verificar se houve envio bem-sucedido recentemente (últimos 30 segundos)
+  // Verificar se já foi enviado nas últimas 2 horas
   const recentSuccess = await query(
-    'SELECT COUNT(*) as count FROM audit_logs WHERE ticket_id = ? AND action = ? AND status = ? AND created_at > DATE_SUB(NOW(), INTERVAL 30 SECOND)',
-    [ticket.id, 'whatsapp_notification', 'success']
+    'SELECT whatsapp_sent FROM tickets WHERE id = ?',
+    [ticket.id]
   ) as any[];
   
-  if (recentSuccess[0]?.count > 0) {
-    console.log(`[WHATSAPP] Ignorando envio duplicado para ticket ${ticket.id} (sucesso recente)`);
+  if (recentSuccess[0]?.whatsapp_sent) {
+    console.log(`[WHATSAPP] WhatsApp já enviado para ticket ${ticket.id}`);
     return null;
   }
 
