@@ -1,25 +1,45 @@
 import axios from 'axios';
+import { query } from './mysql';
 
 export async function sendWhatsAppNotification(ticket: any) {
   const baseUrl = process.env.WHATSAPP_BOT_URL;
   const token = process.env.WHATSAPP_BOT_TOKEN;
 
+  const logAudit = async (status: string, response?: any, error?: any) => {
+    try {
+      await query(
+        'INSERT INTO audit_logs (ticket_id, action, status, payload, response, error) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          ticket.id,
+          'whatsapp_notification',
+          status,
+          JSON.stringify({ phone: ticket.phone, amount: ticket.amount }),
+          response ? JSON.stringify(response) : null,
+          error ? JSON.stringify(error) : null
+        ]
+      );
+    } catch (e) {
+      console.error('[AUDIT] Failed to save log:', e);
+    }
+  };
+
   if (!baseUrl || !token) {
     console.warn('[WHATSAPP] Configuração ausente no .env');
-    return;
+    await logAudit('failed', null, 'Missing environment variables (URL or Token)');
+    return null;
   }
 
   if (!ticket || !ticket.phone) {
     console.warn('[WHATSAPP] Ticket ou telefone ausente');
-    return;
+    await logAudit('failed', null, 'Ticket or phone missing');
+    return null;
   }
 
-  // Ensure phone is only digits
   const phone = ticket.phone.replace(/\D/g, '');
   const phoneFormatted = phone.startsWith('55') ? phone : `55${phone}`;
 
   try {
-    console.log(`[WHATSAPP] Enviando mensagem de compra para: ${phoneFormatted}`);
+    console.log(`[WHATSAPP] Enviando mensagem para: ${phoneFormatted}`);
     const response = await axios.post(
       `${baseUrl}/api/events/purchase`,
       {
@@ -39,12 +59,19 @@ export async function sendWhatsAppNotification(ticket: any) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 5000
+        timeout: 15000 // Aumentado para 15s devido aos logs de timeout do Baileys
       }
     );
+    
+    await logAudit('success', response.data);
     console.log('[WHATSAPP] Sucesso no envio');
     return response.data;
   } catch (error: any) {
-    console.error(`[WHATSAPP] Erro ao enviar: ${error?.response?.data?.message || error.message}`);
+    const errorMsg = error?.response?.data?.message || error.message;
+    const errorData = error?.response?.data || null;
+    
+    console.error(`[WHATSAPP] Erro ao enviar: ${errorMsg}`);
+    await logAudit('error', errorData, errorMsg);
+    return null;
   }
 }
