@@ -5,6 +5,17 @@ export async function sendWhatsAppNotification(ticket: any) {
   const baseUrl = process.env.WHATSAPP_BOT_URL;
   const token = process.env.WHATSAPP_BOT_TOKEN;
 
+  // Verificar lock para evitar envios duplicados (últimos 10 segundos)
+  const recentAttempts = await query(
+    'SELECT COUNT(*) as count FROM audit_logs WHERE ticket_id = ? AND action = ? AND created_at > DATE_SUB(NOW(), INTERVAL 10 SECOND)',
+    [ticket.id, 'whatsapp_notification']
+  ) as any[];
+  
+  if (recentAttempts[0]?.count > 0) {
+    console.log(`[WHATSAPP] Ignorando envio duplicado para ticket ${ticket.id} (tentativa recente)`);
+    return null;
+  }
+
   const logAudit = async (status: string, response?: any, error?: any) => {
     try {
       await query(
