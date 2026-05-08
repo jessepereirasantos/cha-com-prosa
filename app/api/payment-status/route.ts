@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../lib/mercadopago';
+import { query } from '../../../lib/mysql';
+import { sendWhatsAppNotification } from '../../../lib/whatsapp';
 
 /**
- * ENDPOINT DE POLLING (UX IMEDIATA)
+ * ENDPOINT DE POLLING (UX IMEDIATA + REDUNDÂNCIA)
  * Este endpoint consulta DIRETAMENTE a API do Mercado Pago.
- * Ele NÃO atualiza o banco de dados e NÃO dispara WhatsApp.
- * Sua única função é informar o frontend se o pagamento foi aprovado.
+ * Ele também serve como REDUNDÂNCIA para o Webhook:
+ * Se o Webhook falhar, o Polling detecta a aprovação, atualiza o banco e dispara o WhatsApp.
  */
 export async function GET(req: Request) {
   try {
@@ -16,18 +18,53 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'ID do pagamento não fornecido' }, { status: 400 });
     }
 
-    // Consulta DIRETAMENTE a API oficial (Fonte da Verdade para UX)
+    // 1. Consulta DIRETAMENTE a API oficial (Fonte da Verdade)
     const mpPayment = await getPaymentStatus(paymentId);
     const status = mpPayment.status;
+    const isApproved = status === 'approved' || status === 'authorized';
 
-    // Retorna apenas o veredito para o frontend.
-    // O banco de dados e as comunicações ficam por conta exclusiva do WEBHOOK.
+    // 2. REDUNDÂNCIA: Se aprovado, garante que o banco e o WhatsApp foram processados
+    if (isApproved) {
+      // Busca o ticket no banco
+      const tickets = await query(
+        'SELECT * FROM tickets WHERE paymentIdMP = ? OR id = ?',
+        [paymentId, mpPayment.external_reference]
+      ) as any[];
+
+      if (tickets.length > 0) {
+        const ticket = tickets[0];
+
+        // Atualiza status se ainda não estiver como pago
+        if (ticket.status !== 'paid') {
+          await query('UPDATE tickets SET status = "paid" WHERE id = ?', [ticket.id]);
+          console.log(`[POLLING REDUNDANCY] Status atualizado para 'paid' para o ticket ${ticket.id}`);
+        }
+
+        // Tenta enviar WhatsApp se ainda não foi enviado
+        if (!ticket.whatsapp_sent) {
+          console.log(`[POLLING REDUNDANCY] Tentando disparo de WhatsApp para ${ticket.name}`);
+          try {
+            const waResult = await sendWhatsAppNotification({
+              ...ticket,
+              amount: mpPayment.transaction_amount || 57.00
+            });
+
+            if (waResult) {
+              await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+              console.log(`[POLLING REDUNDANCY] WhatsApp enviado com sucesso via Polling`);
+            }
+          } catch (waErr: any) {
+            console.error(`[POLLING REDUNDANCY] Falha no disparo de WhatsApp:`, waErr.message);
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
-      status: (status === 'approved' || status === 'authorized') ? 'approved' : 'pending'
+      status: isApproved ? 'approved' : 'pending'
     });
 
   } catch (error: any) {
-    // Em caso de erro na API do MP, retorna pending para o frontend continuar tentando
     console.error('[POLLING] Erro na consulta direta:', error.message);
     return NextResponse.json({ status: 'pending' });
   }

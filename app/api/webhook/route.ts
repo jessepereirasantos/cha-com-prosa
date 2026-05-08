@@ -79,21 +79,22 @@ async function processPaymentInBackground(paymentId: string) {
     const checkSent = await query('SELECT whatsapp_sent FROM tickets WHERE id = ?', [ticket.id]) as any[];
 
     if (!checkSent[0]?.whatsapp_sent) {
-      console.log(`[WHATSAPP] Enviando para: ${ticket.phone} | Nome: ${ticket.name}`);
-
-      // Marca como enviado ANTES para evitar race condition
-      await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+      console.log(`[WHATSAPP] Tentando disparo para: ${ticket.phone}`);
 
       try {
-        await sendWhatsAppNotification({
+        const result = await sendWhatsAppNotification({
           ...ticket,
           amount: mpPayment.transaction_amount || 57.00
         });
-        console.log(`[WHATSAPP] Sucesso no disparo para ${ticket.name}`);
+        
+        if (result) {
+          await query('UPDATE tickets SET whatsapp_sent = 1 WHERE id = ?', [ticket.id]);
+          console.log(`[WHATSAPP] Sucesso e banco atualizado para ${ticket.name}`);
+        } else {
+          console.error(`[WHATSAPP] Bot retornou erro ou timeout para ${ticket.name}`);
+        }
       } catch (waErr: any) {
-        console.error(`[WHATSAPP] Erro no envio: ${waErr.message}`);
-        // Reseta para tentar novamente na próxima retentativa do webhook
-        await query('UPDATE tickets SET whatsapp_sent = 0 WHERE id = ?', [ticket.id]);
+        console.error(`[WHATSAPP] Erro crítico no envio: ${waErr.message}`);
       }
     } else {
       console.log(`[WHATSAPP] Notificação já enviada anteriormente para o ticket ${ticket.id}`);
